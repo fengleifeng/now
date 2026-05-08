@@ -1,0 +1,12 @@
+[
+  {"CardA":"wood","CardB":"stone","Results":["axe"],"Chance":1.0,"MatchByTag":false},
+  {"CardA":"axe","CardB":"rabbit","Results":["meat","hide"],"Chance":0.8,"MatchByTag":false},
+  {"CardA":"axe","CardB":"wolf","Results":["meat","hide"],"Chance":0.5,"MatchByTag":false},
+  {"CardA":"wood","CardB":"wood","Results":["campfire"],"Chance":1.0,"MatchByTag":false},
+  {"CardA":"Material","CardB":"Material","Results":["trap"],"Chance":0.6,"MatchByTag":true},
+  {"CardA":"meat","CardB":"campfire","Results":["berry"],"Chance":1.0,"MatchByTag":false},
+  {"CardA":"Food","CardB":"campfire","Results":["berry"],"Chance":1.0,"MatchByTag":true},
+  {"CardA":"campfire","CardB":"storm","Results":[],"Chance":1.0,"MatchByTag":false},
+  {"CardA":"injury","CardB":"Food","Results":[],"Chance":1.0,"MatchByTag":true},
+  {"CardA":"wolf","CardB":"trap","Results":["meat","hide"],"Chance":0.9,"MatchByTag":false}
+]

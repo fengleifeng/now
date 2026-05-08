@@ -1,0 +1,14 @@
+[
+  {"Id":"wood","Name":"木头","Type":"Resource","Stack":1,"MaxStack":10,"Tags":["Wood","Material"],"Durability":-1},
+  {"Id":"stone","Name":"石头","Type":"Resource","Stack":1,"MaxStack":10,"Tags":["Stone","Material"],"Durability":-1},
+  {"Id":"berry","Name":"浆果","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Food"],"Durability":-1},
+  {"Id":"rabbit","Name":"兔子","Type":"Creature","Stack":1,"MaxStack":1,"Tags":["Animal","Food"],"Durability":-1},
+  {"Id":"wolf","Name":"狼","Type":"Creature","Stack":1,"MaxStack":1,"Tags":["Animal","Danger"],"Durability":-1},
+  {"Id":"axe","Name":"石斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool"],"Durability":5},
+  {"Id":"campfire","Name":"火堆","Type":"Building","Stack":1,"MaxStack":1,"Tags":["Fire","Shelter"],"Durability":3},
+  {"Id":"trap","Name":"陷阱","Type":"Building","Stack":1,"MaxStack":1,"Tags":["Tool"],"Durability":2},
+  {"Id":"meat","Name":"肉","Type":"Resource","Stack":1,"MaxStack":3,"Tags":["Food"],"Durability":-1},
+  {"Id":"hide","Name":"兽皮","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Material"],"Durability":-1},
+  {"Id":"injury","Name":"受伤","Type":"Status","Stack":1,"MaxStack":1,"Tags":[],"Durability":-1},
+  {"Id":"storm","Name":"暴雨","Type":"Event","Stack":1,"MaxStack":1,"Tags":[],"Durability":-1}
+]
