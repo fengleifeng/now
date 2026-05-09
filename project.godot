@@ -11,8 +11,15 @@ config_version=5
 [application]
 
 config/name="now"
-config/features=PackedStringArray("4.6", "Forward Plus")
+run/main_scene="res://scenes/GameRoot.tscn"
+config/features=PackedStringArray("4.6", "C#", "Mobile")
 config/icon="res://icon.svg"
+
+[autoload]
+
+CardManager="*res://scripts/autoload/CardManager.cs"
+CombineSystem="*res://scripts/autoload/CombineSystem.cs"
+PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
 
 [dotnet]
 
@@ -22,12 +29,10 @@ project/assembly_name="now"
 
 3d/physics_engine="Jolt Physics"
 
+[display]
+
+window/vsync/vsync_mode=1
+
 [rendering]
 
-rendering_device/driver.windows="d3d12"
-
-[autoload]
-
-CardManager="*res://scripts/autoload/CardManager.cs"
-CombineSystem="*res://scripts/autoload/CombineSystem.cs"
-PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
+rendering_device/driver.windows="vulkan"

@@ -19,10 +19,11 @@ public partial class GameRoot : Control
         _combineSystem = GetNode<CombineSystem>("/root/CombineSystem");
 
         SetupUI();
-        ConnectSignals();
 
         _cardManager.DrawInitialHand(5);
         RefreshHand();
+
+        ConnectSignals();
     }
 
     private void SetupUI()
