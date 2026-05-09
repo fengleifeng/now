@@ -8,4 +8,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="GodotSharp" Version="4.6.0" />
+    <PackageReference Include="Godot.SourceGenerators" Version="4.6.0" />
+  </ItemGroup>
+
 </Project>
