@@ -14,7 +14,8 @@ public partial class CardManager : Node
 
     public override void _Ready()
     {
-        var cards = DataLoader.LoadCards("res://data/cards.json");
+        var path = ProjectSettings.GlobalizePath("res://data/cards.json");
+        var cards = DataLoader.LoadCards(path);
         foreach (var c in cards)
             _cardDefs[c.Id] = c;
         GD.Print($"[CardManager] Loaded {_cardDefs.Count} card definitions");

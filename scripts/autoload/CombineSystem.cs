@@ -13,7 +13,8 @@ public partial class CombineSystem : Node
 
     public override void _Ready()
     {
-        _rules = DataLoader.LoadRules("res://data/combine_rules.json");
+        var path = ProjectSettings.GlobalizePath("res://data/combine_rules.json");
+        _rules = DataLoader.LoadRules(path);
         GD.Print($"[CombineSystem] Loaded {_rules.Count} rules");
     }
 
