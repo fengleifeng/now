@@ -24,6 +24,7 @@ public partial class StatusPanel : HBoxContainer
         _hpLabel = new Label();
         _hpLabel.Text = "HP";
         _hpLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _hpLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         hpGroup.AddChild(_hpLabel);
 
         _hpBar = new ProgressBar();
@@ -38,6 +39,7 @@ public partial class StatusPanel : HBoxContainer
         _hungerLabel = new Label();
         _hungerLabel.Text = "Hunger";
         _hungerLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _hungerLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         hungerGroup.AddChild(_hungerLabel);
 
         _hungerBar = new ProgressBar();

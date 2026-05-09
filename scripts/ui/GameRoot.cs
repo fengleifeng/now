@@ -27,6 +27,12 @@ public partial class GameRoot : Control
 
     private void SetupUI()
     {
+        // Background
+        var bg = new ColorRect();
+        bg.Color = new Color(0.12f, 0.12f, 0.15f);
+        bg.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        AddChild(bg);
+
         var margin = new MarginContainer();
         margin.AddThemeConstantOverride("margin_left", 20);
         margin.AddThemeConstantOverride("margin_right", 20);
@@ -49,6 +55,7 @@ public partial class GameRoot : Control
         var tableLabel = new Label();
         tableLabel.Text = "== Table ==";
         tableLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        tableLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         mainVBox.AddChild(tableLabel);
 
         _tableArea = new TableArea();
@@ -64,6 +71,7 @@ public partial class GameRoot : Control
         var handLabel = new Label();
         handLabel.Text = "== Hand ==";
         handLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        handLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         mainVBox.AddChild(handLabel);
 
         _handArea = new HandArea();

@@ -40,10 +40,12 @@ public partial class CardNode : Control
 
         _nameLabel = new Label();
         _nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _nameLabel.AddThemeColorOverride("font_color", new Color(1, 1, 1));
         vbox.AddChild(_nameLabel);
 
         _typeLabel = new Label();
         _typeLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _typeLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         _typeLabel.AddThemeFontSizeOverride("font_size", 10);
         vbox.AddChild(_typeLabel);
     }
