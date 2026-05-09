@@ -38,6 +38,13 @@ public partial class CardManager : Node
         return instance;
     }
 
+    public void AddCardToHand(CardData card)
+    {
+        _hand.Add(card);
+        EmitSignal(SignalName.OnCardAdded, card.Id);
+        GD.Print($"[CardManager] Added card to hand: {card.Name}");
+    }
+
     public void RemoveCardFromHand(CardData card)
     {
         _hand.Remove(card);
