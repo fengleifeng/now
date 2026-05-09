@@ -25,3 +25,9 @@ project/assembly_name="now"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+
+[autoload]
+
+CardManager="*res://scripts/autoload/CardManager.cs"
+CombineSystem="*res://scripts/autoload/CombineSystem.cs"
+PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
