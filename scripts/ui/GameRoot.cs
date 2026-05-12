@@ -498,7 +498,6 @@ public partial class GameRoot : Control
 		ClosePopup();
 		var popup = new CraftPopup();
 		_popup = popup;
-		popup.Setup(card);
 		AddChild(popup);
 		popup.Refresh(GetLearnedRecipes(), _player.GetActiveProjects(), _cards.GetHand());
 		popup.OnCraftRecipe += CraftRecipe;
@@ -513,7 +512,6 @@ public partial class GameRoot : Control
 		ClosePopup();
 		var popup = new MenuPopup();
 		_popup = popup;
-		popup.Setup(card);
 		AddChild(popup);
 		popup.OnSave += () =>
 		{
