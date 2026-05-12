@@ -1,12 +1,71 @@
 [
-  {"CardA":"wood","CardB":"stone","Results":["axe"],"Chance":1.0,"MatchByTag":false},
-  {"CardA":"axe","CardB":"rabbit","Results":["meat","hide"],"Chance":0.8,"MatchByTag":false},
-  {"CardA":"axe","CardB":"wolf","Results":["meat","hide"],"Chance":0.5,"MatchByTag":false},
-  {"CardA":"wood","CardB":"wood","Results":["campfire"],"Chance":1.0,"MatchByTag":false},
-  {"CardA":"Material","CardB":"Material","Results":["trap"],"Chance":0.6,"MatchByTag":true},
-  {"CardA":"meat","CardB":"campfire","Results":["berry"],"Chance":1.0,"MatchByTag":false},
-  {"CardA":"Food","CardB":"campfire","Results":["berry"],"Chance":1.0,"MatchByTag":true},
-  {"CardA":"campfire","CardB":"storm","Results":[],"Chance":1.0,"MatchByTag":false},
-  {"CardA":"injury","CardB":"Food","Results":[],"Chance":1.0,"MatchByTag":true},
-  {"CardA":"wolf","CardB":"trap","Results":["meat","hide"],"Chance":0.9,"MatchByTag":false}
+  {"CardA":"wood","CardB":"stone","Results":["axe"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"axe","CardB":"rabbit","Results":["meat","hide"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"axe","CardB":"wolf","Results":["meat","hide"],"Chance":0.5,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"axe","CardB":"snake","Results":["meat"],"Chance":0.7,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"spear","CardB":"wolf","Results":["meat","hide"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"spear","CardB":"snake","Results":["meat"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"wood","CardB":"wood","Results":["campfire"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"Material","CardB":"Material","Results":["trap"],"Chance":0.6,"MatchByTag":true,"Ingredients":[]},
+
+  {"CardA":"meat","CardB":"campfire","Results":["cooked_meat"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"fish","CardB":"campfire","Results":["cooked_meat"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"Food","CardB":"campfire","Results":["cooked_meat"],"Chance":0.7,"MatchByTag":true,"Ingredients":[]},
+  {"CardA":"campfire","CardB":"storm","Results":[],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"injury","CardB":"Medicine","Results":[],"Chance":1.0,"MatchByTag":true,"Ingredients":[]},
+  {"CardA":"sick","CardB":"Medicine","Results":[],"Chance":0.8,"MatchByTag":true,"Ingredients":[]},
+
+  {"CardA":"wolf","CardB":"trap","Results":["meat","hide"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"rabbit","CardB":"trap","Results":["meat","hide"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"wood","CardB":"hide","Results":["tent"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"stone","CardB":"wood","Results":["spear"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"meat","CardB":"meat","Results":["sick"],"Chance":0.3,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"snake","CardB":"Weapon","Results":["meat"],"Chance":0.6,"MatchByTag":true,"Ingredients":[]},
+
+  {"CardA":"fish","CardB":"Raw","Results":["meat","hide"],"Chance":0.5,"MatchByTag":true,"Ingredients":[]},
+
+  {"CardA":"wood","CardB":"stone","Results":["stone_knife"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"stone_knife","CardB":"rabbit","Results":["meat","hide"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"stone_knife","CardB":"meat","Results":["meat","meat","hide"],"Chance":0.6,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"axe","CardB":"tree","Results":["wood","wood","wood"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"axe","CardB":"wood","Results":["plank"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"iron_ore","CardB":"furnace","Results":["iron_ingot"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"iron_ingot","CardB":"wood","Results":["iron_axe"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"iron_ingot","CardB":"plank","Results":["iron_axe"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"iron_axe","CardB":"tree","Results":["wood","wood","wood","wood"],"Chance":0.95,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"iron_axe","CardB":"rock","Results":["stone","stone","stone"],"Chance":0.9,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"Danger","CardB":"Trap","Results":["meat","hide"],"Chance":0.7,"MatchByTag":true,"Ingredients":[]},
+
+  {"CardA":"berry","CardB":"berry","Results":["berry","berry","berry"],"Chance":0.5,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"herb","CardB":"herb","Results":["herb","herb"],"Chance":0.6,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"stone","CardB":"stone","Results":["campfire"],"Chance":0.3,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"flower","CardB":"flower","Results":["flower","flower"],"Chance":0.7,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"water","CardB":"berry","Results":["water","water"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"plank","CardB":"plank","Results":["workbench"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
+  {"CardA":"stone","CardB":"stone","Results":["furnace"],"Chance":0.5,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"workbench","CardB":"axe","Results":["iron_axe"],"Chance":0.5,"MatchByTag":false,"Ingredients":[]},
+
+  {"CardA":"","CardB":"","Results":["spear"],"Chance":1.0,"MatchByTag":false,"Ingredients":["stone","stone","wood"]},
+  {"CardA":"","CardB":"","Results":["tent"],"Chance":1.0,"MatchByTag":false,"Ingredients":["wood","wood","hide"]},
+  {"CardA":"","CardB":"","Results":["cooked_meat","cooked_meat"],"Chance":1.0,"MatchByTag":false,"Ingredients":["meat","meat","campfire"]},
+  {"CardA":"","CardB":"","Results":["cooked_meat","herb"],"Chance":1.0,"MatchByTag":false,"Ingredients":["fish","campfire","herb"]},
+  {"CardA":"","CardB":"","Results":["axe","axe"],"Chance":0.8,"MatchByTag":false,"Ingredients":["wood","stone","stone"]},
+  {"CardA":"","CardB":"","Results":["trap","trap"],"Chance":0.7,"MatchByTag":false,"Ingredients":["wood","stone","hide"]},
+  {"CardA":"","CardB":"","Results":["plank","plank","plank"],"Chance":0.9,"MatchByTag":false,"Ingredients":["axe","wood","wood"]},
+  {"CardA":"","CardB":"","Results":["iron_ingot"],"Chance":0.8,"MatchByTag":false,"Ingredients":["iron_ore","wood","wood"]},
+  {"CardA":"","CardB":"","Results":["workbench"],"Chance":0.8,"MatchByTag":false,"Ingredients":["stone","wood","wood"]},
+  {"CardA":"","CardB":"","Results":["furnace"],"Chance":0.7,"MatchByTag":false,"Ingredients":["stone","stone","wood","wood"]}
 ]

@@ -1,0 +1,9 @@
+[
+  {"Id":"house","Name":"木屋","Icon":"🏠","MaterialId":"wood","RequiredSteps":6,"ResultCardId":"house","UnlockRecipe":"tent","Description":"简陋的木屋，夜晚温度+5，精力恢复+10"},
+  {"Id":"stone_house","Name":"石屋","Icon":"🏫","MaterialId":"stone","RequiredSteps":8,"ResultCardId":"stone_house","UnlockRecipe":"house","Description":"坚固的石屋，夜晚温度+8，精力恢复+15，防暴风雨"},
+  {"Id":"bridge","Name":"木桥","Icon":"🌉","MaterialId":"wood","RequiredSteps":6,"ResultCardId":"bridge","UnlockRecipe":"","Description":"横跨河流的木桥，解锁新区域"},
+  {"Id":"wall","Name":"围墙","Icon":"🧱","MaterialId":"stone","RequiredSteps":5,"ResultCardId":"wall","UnlockRecipe":"axe","Description":"防御围墙，防止狼袭击"},
+  {"Id":"smoke_rack","Name":"熏肉架","Icon":"🥓","MaterialId":"wood","RequiredSteps":3,"ResultCardId":"smoke_rack","UnlockRecipe":"campfire","Description":"熏制食物的架子，批量烹饪"},
+  {"Id":"well","Name":"水井","Icon":"💧","MaterialId":"stone","RequiredSteps":4,"ResultCardId":"well","UnlockRecipe":"","Description":"取水的井，探索额外获得鱼"},
+  {"Id":"watchtower","Name":"瞭望塔","Icon":"🗼","MaterialId":"wood","RequiredSteps":8,"ResultCardId":"watchtower","UnlockRecipe":"wall","Description":"高处的瞭望塔，探索事件概率降低50%"}
+]

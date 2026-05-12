@@ -11,15 +11,19 @@ config_version=5
 [application]
 
 config/name="now"
-run/main_scene="res://scenes/GameRoot.tscn"
+run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "C#", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
+MapSystem="*res://scripts/autoload/MapSystem.cs"
+PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
 CardManager="*res://scripts/autoload/CardManager.cs"
 CombineSystem="*res://scripts/autoload/CombineSystem.cs"
-PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
+TimeSystem="*res://scripts/autoload/TimeSystem.cs"
+EffectSystem="*res://scripts/autoload/EffectSystem.cs"
+SaveSystem="*res://scripts/autoload/SaveSystem.cs"
 
 [dotnet]
 
@@ -28,11 +32,3 @@ project/assembly_name="now"
 [physics]
 
 3d/physics_engine="Jolt Physics"
-
-[display]
-
-window/vsync/vsync_mode=1
-
-[rendering]
-
-rendering_device/driver.windows="vulkan"

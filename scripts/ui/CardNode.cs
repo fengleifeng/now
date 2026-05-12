@@ -1,4 +1,3 @@
-// scripts/ui/CardNode.cs
 using Godot;
 using CardSurvival.Data;
 
@@ -6,103 +5,212 @@ namespace CardSurvival.UI;
 
 public partial class CardNode : Control
 {
-    public CardData Data { get; private set; } = null!;
+	[Signal] public delegate void OnCardDragEndedEventHandler(CardNode card);
+	[Signal] public delegate void OnCardClickedEventHandler(CardNode card);
 
-    private ColorRect _bg = null!;
-    private Label _nameLabel = null!;
-    private Label _typeLabel = null!;
-    private Panel _panel = null!;
+	public CardData Data { get; private set; } = null!;
+	public bool WasDragged => _wasDragged;
 
-    public override void _Ready()
-    {
-        CustomMinimumSize = new Vector2(110, 70);
-        MouseFilter = MouseFilterEnum.Stop;
-        MouseDefaultCursorShape = CursorShape.PointingHand;
+	private Label _nameLabel = null!;
+	private Label _typeLabel = null!;
+	private Label _attrLabel = null!;
+	private ColorRect _fill = null!;
+	private bool _initialized;
+	private bool _isDragging;
+	private bool _wasDragged;
+	private bool _mousePressedOnNode;
+	private Vector2 _dragOffset;
+	private Vector2 _dragStart;
+	private Vector2 _dropGlobalPos;
 
-        _panel = new Panel();
-        _panel.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(_panel);
+	public override void _Ready()
+	{
+		InitializeUI();
+	}
 
-        _bg = new ColorRect();
-        _bg.SetAnchorsPreset(LayoutPreset.FullRect);
-        _panel.AddChild(_bg);
+	public void Setup(CardData data)
+	{
+		InitializeUI();
+		Data = data;
+		_nameLabel.Text = data.Stack > 1 ? data.Name + " x" + data.Stack.ToString() : data.Name;
+		_typeLabel.Text = GetTypeText(data.Type);
+		_attrLabel.Text = GetAttrText(data);
+		_fill.Color = GetTypeColor(data.Type);
+		TooltipText = data.Description;
+		MouseDefaultCursorShape = data.IsDraggable ? CursorShape.PointingHand : CursorShape.Arrow;
+	}
 
-        var vbox = new VBoxContainer();
-        vbox.AddThemeConstantOverride("separation", 2);
+	private void InitializeUI()
+	{
+		if (_initialized) return;
+		_initialized = true;
 
-        var margin = new MarginContainer();
-        margin.AddThemeConstantOverride("margin_left", 6);
-        margin.AddThemeConstantOverride("margin_right", 6);
-        margin.AddThemeConstantOverride("margin_top", 6);
-        margin.AddThemeConstantOverride("margin_bottom", 6);
-        _panel.AddChild(margin);
-        margin.AddChild(vbox);
+		CustomMinimumSize = new Vector2(108, 82);
+		SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
+		SizeFlagsVertical = SizeFlags.ShrinkBegin;
+		MouseFilter = MouseFilterEnum.Stop;
 
-        _nameLabel = new Label();
-        _nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _nameLabel.AddThemeColorOverride("font_color", new Color(1, 1, 1));
-        vbox.AddChild(_nameLabel);
+		var panel = new Panel();
+		panel.SetAnchorsPreset(LayoutPreset.FullRect);
+		AddChild(panel);
 
-        _typeLabel = new Label();
-        _typeLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _typeLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
-        _typeLabel.AddThemeFontSizeOverride("font_size", 10);
-        vbox.AddChild(_typeLabel);
-    }
+		_fill = new ColorRect();
+		_fill.SetAnchorsPreset(LayoutPreset.FullRect);
+		_fill.OffsetLeft = 3;
+		_fill.OffsetTop = 3;
+		_fill.OffsetRight = -3;
+		_fill.OffsetBottom = -3;
+		AddChild(_fill);
 
-    public void Setup(CardData data)
-    {
-        Data = data;
-        _nameLabel.Text = data.Name;
-        _typeLabel.Text = $"[{data.Type}] x{data.Stack}";
+		var margin = new MarginContainer();
+		margin.SetAnchorsPreset(LayoutPreset.FullRect);
+		margin.AddThemeConstantOverride("margin_left", 6);
+		margin.AddThemeConstantOverride("margin_right", 6);
+		margin.AddThemeConstantOverride("margin_top", 5);
+		margin.AddThemeConstantOverride("margin_bottom", 5);
+		AddChild(margin);
 
-        _bg.Color = data.Type switch
-        {
-            CardType.Resource => new Color(0.45f, 0.35f, 0.2f),
-            CardType.Creature => new Color(0.25f, 0.5f, 0.25f),
-            CardType.Tool => new Color(0.35f, 0.35f, 0.55f),
-            CardType.Building => new Color(0.5f, 0.4f, 0.25f),
-            CardType.Status => new Color(0.55f, 0.2f, 0.2f),
-            CardType.Event => new Color(0.2f, 0.2f, 0.55f),
-            _ => new Color(0.3f, 0.3f, 0.3f)
-        };
+		var box = new VBoxContainer();
+		box.AddThemeConstantOverride("separation", 2);
+		margin.AddChild(box);
 
-        Name = data.Id;
-    }
+		_nameLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+		_nameLabel.AddThemeFontSizeOverride("font_size", 13);
+		_nameLabel.AddThemeColorOverride("font_color", Colors.White);
+		_nameLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+		box.AddChild(_nameLabel);
 
-    public override Variant _GetDragData(Vector2 atPosition)
-    {
-        var preview = new Label();
-        preview.Text = Data.Name;
-        preview.Modulate = new Color(1, 1, 1, 0.7f);
-        SetDragPreview(preview);
-        return this;
-    }
+		_typeLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+		_typeLabel.AddThemeFontSizeOverride("font_size", 10);
+		_typeLabel.AddThemeColorOverride("font_color", new Color(0.82f, 0.82f, 0.82f));
+		box.AddChild(_typeLabel);
 
-    public override bool _CanDropData(Vector2 atPosition, Variant data)
-    {
-        var node = data.As<CardNode>();
-        return node != null && node != this;
-    }
+		_attrLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+		_attrLabel.AddThemeFontSizeOverride("font_size", 10);
+		_attrLabel.AddThemeColorOverride("font_color", new Color(1f, 0.86f, 0.45f));
+		box.AddChild(_attrLabel);
+	}
 
-    public override void _DropData(Vector2 atPosition, Variant data)
-    {
-        var other = data.As<CardNode>();
-        if (other == null || other == this) return;
+	public override void _GuiInput(InputEvent @event)
+	{
+		if (@event is not InputEventMouseButton mb || mb.ButtonIndex != MouseButton.Left) return;
 
-        var system = GetNode<CombineSystem>("/root/CombineSystem");
-        var manager = GetNode<CardManager>("/root/CardManager");
+		if (mb.Pressed)
+		{
+			_mousePressedOnNode = true;
+			_dragStart = GetGlobalMousePosition();
+			_wasDragged = false;
+			if (Data.IsDraggable)
+				StartDrag();
+		}
+		else if (_isDragging)
+		{
+			_mousePressedOnNode = false;
+			EndDrag();
+		}
+		else if (_mousePressedOnNode)
+		{
+			// 只有鼠标按下和释放都在同一节点上，才算点击
+			_mousePressedOnNode = false;
+			EmitSignal(SignalName.OnCardClicked, this);
+		}
+		else
+		{
+			// 拖拽释放后鼠标落在其他节点上，忽略
+			_mousePressedOnNode = false;
+		}
+	}
 
-        if (system.TryCombine(Data, other.Data))
-        {
-            manager.RemoveCardFromHand(Data);
-            manager.RemoveCardFromHand(other.Data);
-            QueueFree();
-            other.QueueFree();
-        }
-        else
-        {
-            GD.Print($"[CardNode] Combine failed: {Data.Name} + {other.Data.Name}");
-        }
-    }
-}
+	public override void _Input(InputEvent @event)
+	{
+		if (!_isDragging) return;
+		if (@event is InputEventMouseMotion motion)
+		{
+			GlobalPosition = motion.GlobalPosition - _dragOffset;
+			if ((motion.GlobalPosition - _dragStart).Length() > 15f)
+				_wasDragged = true;
+		}
+		else if (@event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left && !mb.Pressed)
+		{
+			EndDrag();
+		}
+	}
+
+	private void StartDrag()
+	{
+		_isDragging = true;
+		_dragOffset = GetGlobalMousePosition() - GlobalPosition;
+		var tree = GetTree();
+		var oldParent = GetParent();
+		oldParent?.RemoveChild(this);
+
+		var layer = new CanvasLayer { Name = "_DragLayer", Layer = 100 };
+		tree?.Root.AddChild(layer);
+		layer.AddChild(this);
+		GlobalPosition = GetGlobalMousePosition() - _dragOffset;
+	}
+
+	private void EndDrag()
+	{
+		_isDragging = false;
+		_dropGlobalPos = GlobalPosition;
+		_mousePressedOnNode = false;
+		if (_wasDragged)
+			EmitSignal(SignalName.OnCardDragEnded, this);
+		else
+			EmitSignal(SignalName.OnCardClicked, this);
+
+		var parent = GetParent();
+		parent?.RemoveChild(this);
+		if (parent?.Name == "_DragLayer")
+			parent.QueueFree();
+		QueueFree();
+	}
+
+	public bool IsOverArea(Control area)
+	{
+		return new Rect2(_dropGlobalPos, Size).Intersects(area.GetGlobalRect());
+	}
+
+	public CardNode? GetOverlappingCard(Control container)
+	{
+		return FindCardNode(container, new Rect2(_dropGlobalPos, Size));
+	}
+
+	private CardNode? FindCardNode(Node node, Rect2 myRect)
+	{
+		foreach (var child in node.GetChildren())
+		{
+			if (child is CardNode card && card != this && myRect.Intersects(new Rect2(card.GlobalPosition, card.Size)))
+				return card;
+			var nested = FindCardNode(child, myRect);
+			if (nested != null)
+				return nested;
+		}
+		return null;
+	}
+
+	private static string GetTypeText(CardType type) => type switch
+	{
+		CardType.Resource => "资源",
+		CardType.Creature => "生物",
+		CardType.Tool => "工具",
+		CardType.Building => "建筑",
+		CardType.Status => "状态",
+		CardType.Event => "事件",
+		CardType.Location => "地点",
+		_ => "未知"
+	};
+
+	private static string GetAttrText(CardData data)
+	{
+		if (data.Durability > 0) return $"耐久 {data.Durability}";
+		if (data.FoodValue > 0) return $"饱食 +{data.FoodValue}";
+		if (data.HealValue > 0) return $"治疗 +{data.HealValue}";
+		return "";
+	}
+
+	private static Color GetTypeColor(CardType type) => type switch
+	{
+		CardType.Resource => new Color(0.42f, 0.33f, 0.2f),
+		CardType.Creature => new Co

@@ -39,13 +39,13 @@ public enum CardTag { Wood, Stone, Material, Food, Weapon, Fire, Shelter, Animal
 
 public class CardData
 {
-    public string Id { get; set; } = "";
-    public string Name { get; set; } = "";
-    public CardType Type { get; set; }
-    public int Stack { get; set; } = 1;
-    public int MaxStack { get; set; } = 1;
-    public List<CardTag> Tags { get; set; } = new();
-    public int Durability { get; set; } = -1;  // -1 = 无限耐久
+	public string Id { get; set; } = "";
+	public string Name { get; set; } = "";
+	public CardType Type { get; set; }
+	public int Stack { get; set; } = 1;
+	public int MaxStack { get; set; } = 1;
+	public List<CardTag> Tags { get; set; } = new();
+	public int Durability { get; set; } = -1;  // -1 = 无限耐久
 }
 ```
 
@@ -59,11 +59,11 @@ namespace CardSurvival.Data;
 
 public class CombineRule
 {
-    public string CardA { get; set; } = "";
-    public string CardB { get; set; } = "";
-    public List<string> Results { get; set; } = new();
-    public float Chance { get; set; } = 1.0f;
-    public bool MatchByTag { get; set; } = false;
+	public string CardA { get; set; } = "";
+	public string CardB { get; set; } = "";
+	public List<string> Results { get; set; } = new();
+	public float Chance { get; set; } = 1.0f;
+	public bool MatchByTag { get; set; } = false;
 }
 ```
 
@@ -75,11 +75,11 @@ namespace CardSurvival.Data;
 
 public class PlayerState
 {
-    public int Health { get; set; } = 100;
-    public int MaxHealth { get; set; } = 100;
-    public int Hunger { get; set; } = 100;
-    public int MaxHunger { get; set; } = 100;
-    public float DayProgress { get; set; } = 0f;
+	public int Health { get; set; } = 100;
+	public int MaxHealth { get; set; } = 100;
+	public int Hunger { get; set; } = 100;
+	public int MaxHunger { get; set; } = 100;
+	public float DayProgress { get; set; } = 0f;
 }
 ```
 
@@ -175,39 +175,39 @@ namespace CardSurvival.Data;
 
 public static class DataLoader
 {
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
-    };
+	private static readonly JsonSerializerOptions Options = new()
+	{
+		PropertyNameCaseInsensitive = true,
+		Converters = { new JsonStringEnumConverter() }
+	};
 
-    public static List<CardData> LoadCards(string path)
-    {
-        try
-        {
-            var json = File.ReadAllText(ProjectSettings.GlobalizePath(path));
-            return JsonSerializer.Deserialize<List<CardData>>(json, Options) ?? new();
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr($"Failed to load cards from {path}: {e.Message}");
-            return new();
-        }
-    }
+	public static List<CardData> LoadCards(string path)
+	{
+		try
+		{
+			var json = File.ReadAllText(ProjectSettings.GlobalizePath(path));
+			return JsonSerializer.Deserialize<List<CardData>>(json, Options) ?? new();
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr($"Failed to load cards from {path}: {e.Message}");
+			return new();
+		}
+	}
 
-    public static List<CombineRule> LoadRules(string path)
-    {
-        try
-        {
-            var json = File.ReadAllText(ProjectSettings.GlobalizePath(path));
-            return JsonSerializer.Deserialize<List<CombineRule>>(json, Options) ?? new();
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr($"Failed to load rules from {path}: {e.Message}");
-            return new();
-        }
-    }
+	public static List<CombineRule> LoadRules(string path)
+	{
+		try
+		{
+			var json = File.ReadAllText(ProjectSettings.GlobalizePath(path));
+			return JsonSerializer.Deserialize<List<CombineRule>>(json, Options) ?? new();
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr($"Failed to load rules from {path}: {e.Message}");
+			return new();
+		}
+	}
 }
 ```
 
@@ -251,71 +251,71 @@ namespace CardSurvival;
 
 public partial class CardManager : Node
 {
-    [Signal] public delegate void OnCardAddedEventHandler(string cardId);
-    [Signal] public delegate void OnCardRemovedEventHandler(string cardId);
+	[Signal] public delegate void OnCardAddedEventHandler(string cardId);
+	[Signal] public delegate void OnCardRemovedEventHandler(string cardId);
 
-    private Dictionary<string, CardData> _cardDefs = new();
-    private List<CardData> _hand = new();
-    private Random _rng = new();
+	private Dictionary<string, CardData> _cardDefs = new();
+	private List<CardData> _hand = new();
+	private Random _rng = new();
 
-    public override void _Ready()
-    {
-        _cardDefs.Clear();
-        var cards = DataLoader.LoadCards("res://data/cards.json");
-        foreach (var card in cards)
-            _cardDefs[card.Id] = card;
-        GD.Print($"CardManager: Loaded {_cardDefs.Count} card definitions");
-    }
+	public override void _Ready()
+	{
+		_cardDefs.Clear();
+		var cards = DataLoader.LoadCards("res://data/cards.json");
+		foreach (var card in cards)
+			_cardDefs[card.Id] = card;
+		GD.Print($"CardManager: Loaded {_cardDefs.Count} card definitions");
+	}
 
-    public CardData? GetCard(string id)
-    {
-        return _cardDefs.TryGetValue(id, out var card) ? card : null;
-    }
+	public CardData? GetCard(string id)
+	{
+		return _cardDefs.TryGetValue(id, out var card) ? card : null;
+	}
 
-    public CardData? DrawCard()
-    {
-        if (_cardDefs.Count == 0) return null;
-        var keys = _cardDefs.Keys.ToArray();
-        var id = keys[_rng.Next(keys.Length)];
-        var template = _cardDefs[id];
-        var instance = CloneCard(template);
-        AddCardToHand(instance);
-        return instance;
-    }
+	public CardData? DrawCard()
+	{
+		if (_cardDefs.Count == 0) return null;
+		var keys = _cardDefs.Keys.ToArray();
+		var id = keys[_rng.Next(keys.Length)];
+		var template = _cardDefs[id];
+		var instance = CloneCard(template);
+		AddCardToHand(instance);
+		return instance;
+	}
 
-    public void AddCardToHand(CardData card)
-    {
-        _hand.Add(card);
-        EmitSignal(SignalName.OnCardAdded, card.Id);
-    }
+	public void AddCardToHand(CardData card)
+	{
+		_hand.Add(card);
+		EmitSignal(SignalName.OnCardAdded, card.Id);
+	}
 
-    public void RemoveCardFromHand(CardData card)
-    {
-        if (_hand.Remove(card))
-            EmitSignal(SignalName.OnCardRemoved, card.Id);
-    }
+	public void RemoveCardFromHand(CardData card)
+	{
+		if (_hand.Remove(card))
+			EmitSignal(SignalName.OnCardRemoved, card.Id);
+	}
 
-    public List<CardData> GetHand() => _hand;
+	public List<CardData> GetHand() => _hand;
 
-    public void DrawInitialHand(int count)
-    {
-        for (int i = 0; i < count; i++)
-            DrawCard();
-    }
+	public void DrawInitialHand(int count)
+	{
+		for (int i = 0; i < count; i++)
+			DrawCard();
+	}
 
-    public CardData CloneCard(CardData source)
-    {
-        return new CardData
-        {
-            Id = source.Id,
-            Name = source.Name,
-            Type = source.Type,
-            Stack = source.Stack,
-            MaxStack = source.MaxStack,
-            Tags = new List<CardTag>(source.Tags),
-            Durability = source.Durability
-        };
-    }
+	public CardData CloneCard(CardData source)
+	{
+		return new CardData
+		{
+			Id = source.Id,
+			Name = source.Name,
+			Type = source.Type,
+			Stack = source.Stack,
+			MaxStack = source.MaxStack,
+			Tags = new List<CardTag>(source.Tags),
+			Durability = source.Durability
+		};
+	}
 }
 ```
 
@@ -351,48 +351,48 @@ namespace CardSurvival;
 
 public partial class PlayerSystem : Node
 {
-    [Signal] public delegate void OnPlayerDamagedEventHandler(int amount);
-    [Signal] public delegate void OnPlayerDeathEventHandler();
-    [Signal] public delegate void OnStatsChangedEventHandler();
+	[Signal] public delegate void OnPlayerDamagedEventHandler(int amount);
+	[Signal] public delegate void OnPlayerDeathEventHandler();
+	[Signal] public delegate void OnStatsChangedEventHandler();
 
-    public PlayerState State { get; private set; } = new();
+	public PlayerState State { get; private set; } = new();
 
-    public override void _Ready()
-    {
-        State = new PlayerState();
-        GD.Print($"PlayerSystem: Initialized (HP:{State.Health} Hunger:{State.Hunger})");
-    }
+	public override void _Ready()
+	{
+		State = new PlayerState();
+		GD.Print($"PlayerSystem: Initialized (HP:{State.Health} Hunger:{State.Hunger})");
+	}
 
-    public void TakeDamage(int amount)
-    {
-        State.Health = Mathf.Max(0, State.Health - amount);
-        EmitSignal(SignalName.OnPlayerDamaged, amount);
-        EmitSignal(SignalName.OnStatsChanged);
-        if (State.Health <= 0)
-        {
-            EmitSignal(SignalName.OnPlayerDeath);
-            GD.Print("Player died!");
-        }
-    }
+	public void TakeDamage(int amount)
+	{
+		State.Health = Mathf.Max(0, State.Health - amount);
+		EmitSignal(SignalName.OnPlayerDamaged, amount);
+		EmitSignal(SignalName.OnStatsChanged);
+		if (State.Health <= 0)
+		{
+			EmitSignal(SignalName.OnPlayerDeath);
+			GD.Print("Player died!");
+		}
+	}
 
-    public void Heal(int amount)
-    {
-        State.Health = Mathf.Min(State.MaxHealth, State.Health + amount);
-        EmitSignal(SignalName.OnStatsChanged);
-    }
+	public void Heal(int amount)
+	{
+		State.Health = Mathf.Min(State.MaxHealth, State.Health + amount);
+		EmitSignal(SignalName.OnStatsChanged);
+	}
 
-    public void ConsumeHunger(int amount)
-    {
-        State.Hunger = Mathf.Max(0, State.Hunger - amount);
-        EmitSignal(SignalName.OnStatsChanged);
-        if (State.Hunger <= 0)
-        {
-            TakeDamage(5);
-            GD.Print("Starving! Took 5 damage.");
-        }
-    }
+	public void ConsumeHunger(int amount)
+	{
+		State.Hunger = Mathf.Max(0, State.Hunger - amount);
+		EmitSignal(SignalName.OnStatsChanged);
+		if (State.Hunger <= 0)
+		{
+			TakeDamage(5);
+			GD.Print("Starving! Took 5 damage.");
+		}
+	}
 
-    public bool IsDead() => State.Health <= 0;
+	public bool IsDead() => State.Health <= 0;
 }
 ```
 
@@ -430,75 +430,75 @@ namespace CardSurvival;
 
 public partial class CombineSystem : Node
 {
-    [Signal] public delegate void OnCombineSuccessEventHandler(string cardAId, string cardBId, string[] results);
-    [Signal] public delegate void OnCombineFailEventHandler(string cardAId, string cardBId);
+	[Signal] public delegate void OnCombineSuccessEventHandler(string cardAId, string cardBId, string[] results);
+	[Signal] public delegate void OnCombineFailEventHandler(string cardAId, string cardBId);
 
-    private List<CombineRule> _rules = new();
-    private Random _rng = new();
+	private List<CombineRule> _rules = new();
+	private Random _rng = new();
 
-    public override void _Ready()
-    {
-        _rules = DataLoader.LoadRules("res://data/combine_rules.json");
-        GD.Print($"CombineSystem: Loaded {_rules.Count} rules");
-    }
+	public override void _Ready()
+	{
+		_rules = DataLoader.LoadRules("res://data/combine_rules.json");
+		GD.Print($"CombineSystem: Loaded {_rules.Count} rules");
+	}
 
-    public bool TryCombine(CardData a, CardData b)
-    {
-        if (a == null || b == null) return false;
+	public bool TryCombine(CardData a, CardData b)
+	{
+		if (a == null || b == null) return false;
 
-        var rule = FindRule(a.Id, b.Id, a.Tags, b.Tags);
-        if (rule == null)
-        {
-            GD.Print($"Combine: {a.Name} + {b.Name} → No match");
-            EmitSignal(SignalName.OnCombineFail, a.Id, b.Id);
-            return false;
-        }
+		var rule = FindRule(a.Id, b.Id, a.Tags, b.Tags);
+		if (rule == null)
+		{
+			GD.Print($"Combine: {a.Name} + {b.Name} → No match");
+			EmitSignal(SignalName.OnCombineFail, a.Id, b.Id);
+			return false;
+		}
 
-        if (_rng.NextDouble() > rule.Chance)
-        {
-            GD.Print($"Combine: {a.Name} + {b.Name} → Failed ({rule.Chance:P0} chance)");
-            EmitSignal(SignalName.OnCombineFail, a.Id, b.Id);
-            return false;
-        }
+		if (_rng.NextDouble() > rule.Chance)
+		{
+			GD.Print($"Combine: {a.Name} + {b.Name} → Failed ({rule.Chance:P0} chance)");
+			EmitSignal(SignalName.OnCombineFail, a.Id, b.Id);
+			return false;
+		}
 
-        GD.Print($"Combine: {a.Name} + {b.Name} → {string.Join(", ", rule.Results)}");
-        EmitSignal(SignalName.OnCombineSuccess, a.Id, b.Id, rule.Results.ToArray());
-        return true;
-    }
+		GD.Print($"Combine: {a.Name} + {b.Name} → {string.Join(", ", rule.Results)}");
+		EmitSignal(SignalName.OnCombineSuccess, a.Id, b.Id, rule.Results.ToArray());
+		return true;
+	}
 
-    private CombineRule? FindRule(string idA, string idB, List<CardTag> tagsA, List<CardTag> tagsB)
-    {
-        // 1. Exact ID match (order-independent)
-        foreach (var rule in _rules)
-        {
-            if (rule.MatchByTag) continue;
-            if (MatchPair(rule.CardA, rule.CardB, idA, idB))
-                return rule;
-        }
+	private CombineRule? FindRule(string idA, string idB, List<CardTag> tagsA, List<CardTag> tagsB)
+	{
+		// 1. Exact ID match (order-independent)
+		foreach (var rule in _rules)
+		{
+			if (rule.MatchByTag) continue;
+			if (MatchPair(rule.CardA, rule.CardB, idA, idB))
+				return rule;
+		}
 
-        // 2. Tag match (order-independent)
-        foreach (var rule in _rules)
-        {
-            if (!rule.MatchByTag) continue;
-            if (MatchByTags(rule.CardA, rule.CardB, tagsA, tagsB))
-                return rule;
-        }
+		// 2. Tag match (order-independent)
+		foreach (var rule in _rules)
+		{
+			if (!rule.MatchByTag) continue;
+			if (MatchByTags(rule.CardA, rule.CardB, tagsA, tagsB))
+				return rule;
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    private static bool MatchPair(string a, string b, string idA, string idB)
-    {
-        return (a == idA && b == idB) || (a == idB && b == idA);
-    }
+	private static bool MatchPair(string a, string b, string idA, string idB)
+	{
+		return (a == idA && b == idB) || (a == idB && b == idA);
+	}
 
-    private static bool MatchByTags(string tagA, string tagB, List<CardTag> tagsA, List<CardTag> tagsB)
-    {
-        var tagsAStr = tagsA.Select(t => t.ToString()).ToHashSet();
-        var tagsBStr = tagsB.Select(t => t.ToString()).ToHashSet();
-        var allTags = tagsAStr.Concat(tagsBStr).ToHashSet();
-        return allTags.Contains(tagA) && allTags.Contains(tagB);
-    }
+	private static bool MatchByTags(string tagA, string tagB, List<CardTag> tagsA, List<CardTag> tagsB)
+	{
+		var tagsAStr = tagsA.Select(t => t.ToString()).ToHashSet();
+		var tagsBStr = tagsB.Select(t => t.ToString()).ToHashSet();
+		var allTags = tagsAStr.Concat(tagsBStr).ToHashSet();
+		return allTags.Contains(tagA) && allTags.Contains(tagB);
+	}
 }
 ```
 
@@ -573,92 +573,92 @@ namespace CardSurvival.UI;
 
 public partial class CardNode : Control
 {
-    public CardData Data { get; private set; }
+	public CardData Data { get; private set; }
 
-    private ColorRect _background;
-    private Label _nameLabel;
-    private Label _infoLabel;
+	private ColorRect _background;
+	private Label _nameLabel;
+	private Label _infoLabel;
 
-    private static readonly Color[] TypeColors = new[]
-    {
-        new(0.4f, 0.3f, 0.2f),  // Resource - brown
-        new(0.3f, 0.5f, 0.3f),  // Creature - green
-        new(0.4f, 0.4f, 0.5f),  // Tool - steel blue
-        new(0.5f, 0.4f, 0.2f),  // Building - tan
-        new(0.6f, 0.2f, 0.2f),  // Status - red
-        new(0.2f, 0.2f, 0.6f),  // Event - dark blue
-    };
+	private static readonly Color[] TypeColors = new[]
+	{
+		new(0.4f, 0.3f, 0.2f),  // Resource - brown
+		new(0.3f, 0.5f, 0.3f),  // Creature - green
+		new(0.4f, 0.4f, 0.5f),  // Tool - steel blue
+		new(0.5f, 0.4f, 0.2f),  // Building - tan
+		new(0.6f, 0.2f, 0.2f),  // Status - red
+		new(0.2f, 0.2f, 0.6f),  // Event - dark blue
+	};
 
-    public override void _Ready()
-    {
-        CustomMinimumSize = new Vector2(100, 60);
-        MouseFilter = MouseFilterEnum.Stop;
+	public override void _Ready()
+	{
+		CustomMinimumSize = new Vector2(100, 60);
+		MouseFilter = MouseFilterEnum.Stop;
 
-        _background = new ColorRect();
-        _background.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(_background);
+		_background = new ColorRect();
+		_background.SetAnchorsPreset(LayoutPreset.FullRect);
+		AddChild(_background);
 
-        var vbox = new VBoxContainer();
-        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        vbox.AddThemeConstantOverride("separation", 2);
-        AddChild(vbox);
+		var vbox = new VBoxContainer();
+		vbox.SetAnchorsPreset(LayoutPreset.FullRect);
+		vbox.AddThemeConstantOverride("separation", 2);
+		AddChild(vbox);
 
-        _nameLabel = new Label();
-        _nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _nameLabel.AddThemeFontSizeOverride("font_size", 14);
-        vbox.AddChild(_nameLabel);
+		_nameLabel = new Label();
+		_nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
+		_nameLabel.AddThemeFontSizeOverride("font_size", 14);
+		vbox.AddChild(_nameLabel);
 
-        _infoLabel = new Label();
-        _infoLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _infoLabel.AddThemeFontSizeOverride("font_size", 10);
-        vbox.AddChild(_infoLabel);
-    }
+		_infoLabel = new Label();
+		_infoLabel.HorizontalAlignment = HorizontalAlignment.Center;
+		_infoLabel.AddThemeFontSizeOverride("font_size", 10);
+		vbox.AddChild(_infoLabel);
+	}
 
-    public void Setup(CardData data)
-    {
-        Data = data;
-        _nameLabel.Text = data.Name;
-        _infoLabel.Text = $"[{data.Type}]";
+	public void Setup(CardData data)
+	{
+		Data = data;
+		_nameLabel.Text = data.Name;
+		_infoLabel.Text = $"[{data.Type}]";
 
-        var colorIdx = (int)data.Type;
-        _background.Color = colorIdx < TypeColors.Length ? TypeColors[colorIdx] : new Color(0.3f, 0.3f, 0.3f);
+		var colorIdx = (int)data.Type;
+		_background.Color = colorIdx < TypeColors.Length ? TypeColors[colorIdx] : new Color(0.3f, 0.3f, 0.3f);
 
-        if (data.Durability > 0)
-            _infoLabel.Text += $" Dur:{data.Durability}";
-        if (data.MaxStack > 1)
-            _infoLabel.Text += $" x{data.Stack}/{data.MaxStack}";
-    }
+		if (data.Durability > 0)
+			_infoLabel.Text += $" Dur:{data.Durability}";
+		if (data.MaxStack > 1)
+			_infoLabel.Text += $" x{data.Stack}/{data.MaxStack}";
+	}
 
-    public override Variant _GetDragData(Vector2 atPosition)
-    {
-        var preview = new Label();
-        preview.Text = Data.Name;
-        preview.AddThemeFontSizeOverride("font_size", 12);
-        SetDragPreview(preview);
-        Modulate = new Color(1, 1, 1, 0.5f);
-        return this;
-    }
+	public override Variant _GetDragData(Vector2 atPosition)
+	{
+		var preview = new Label();
+		preview.Text = Data.Name;
+		preview.AddThemeFontSizeOverride("font_size", 12);
+		SetDragPreview(preview);
+		Modulate = new Color(1, 1, 1, 0.5f);
+		return this;
+	}
 
-    public override void _Notification(int what)
-    {
-        if (what == NotificationDragEnd)
-            Modulate = new Color(1, 1, 1, 1);
-    }
+	public override void _Notification(int what)
+	{
+		if (what == NotificationDragEnd)
+			Modulate = new Color(1, 1, 1, 1);
+	}
 
-    public override bool _CanDropData(Vector2 atPosition, Variant data)
-    {
-        var other = data.As<CardNode>();
-        return other != null && other != this;
-    }
+	public override bool _CanDropData(Vector2 atPosition, Variant data)
+	{
+		var other = data.As<CardNode>();
+		return other != null && other != this;
+	}
 
-    public override void _DropData(Vector2 atPosition, Variant data)
-    {
-        var other = data.As<CardNode>();
-        if (other == null || other == this) return;
+	public override void _DropData(Vector2 atPosition, Variant data)
+	{
+		var other = data.As<CardNode>();
+		if (other == null || other == this) return;
 
-        var combineSystem = GetNode<CombineSystem>("/root/CombineSystem");
-        combineSystem.TryCombine(Data, other.Data);
-    }
+		var combineSystem = GetNode<CombineSystem>("/root/CombineSystem");
+		combineSystem.TryCombine(Data, other.Data);
+	}
 }
 ```
 
@@ -695,28 +695,28 @@ namespace CardSurvival.UI;
 
 public partial class HandArea : HBoxContainer
 {
-    public override void _Ready()
-    {
-        AddThemeConstantOverride("separation", 4);
-        var cardManager = GetNode<CardManager>("/root/CardManager");
+	public override void _Ready()
+	{
+		AddThemeConstantOverride("separation", 4);
+		var cardManager = GetNode<CardManager>("/root/CardManager");
 
-        cardManager.OnCardAdded += (id) => CallDeferred(nameof(Refresh));
-        cardManager.OnCardRemoved += (id) => CallDeferred(nameof(Refresh));
-    }
+		cardManager.OnCardAdded += (id) => CallDeferred(nameof(Refresh));
+		cardManager.OnCardRemoved += (id) => CallDeferred(nameof(Refresh));
+	}
 
-    private void Refresh()
-    {
-        foreach (var child in GetChildren().OfType<CardNode>().ToList())
-            child.QueueFree();
+	private void Refresh()
+	{
+		foreach (var child in GetChildren().OfType<CardNode>().ToList())
+			child.QueueFree();
 
-        var cardManager = GetNode<CardManager>("/root/CardManager");
-        foreach (var card in cardManager.GetHand())
-        {
-            var cardNode = new CardNode();
-            cardNode.Setup(card);
-            AddChild(cardNode);
-        }
-    }
+		var cardManager = GetNode<CardManager>("/root/CardManager");
+		foreach (var card in cardManager.GetHand())
+		{
+			var cardNode = new CardNode();
+			cardNode.Setup(card);
+			AddChild(cardNode);
+		}
+	}
 }
 ```
 
@@ -731,71 +731,71 @@ namespace CardSurvival.UI;
 
 public partial class TableArea : Control
 {
-    private List<CardNode> _cards = new();
+	private List<CardNode> _cards = new();
 
-    public override void _Ready()
-    {
-        var combineSystem = GetNode<CombineSystem>("/root/CombineSystem");
-        var cardManager = GetNode<CardManager>("/root/CardManager");
+	public override void _Ready()
+	{
+		var combineSystem = GetNode<CombineSystem>("/root/CombineSystem");
+		var cardManager = GetNode<CardManager>("/root/CardManager");
 
-        combineSystem.OnCombineSuccess += (aId, bId, results) => OnCombineSuccess(aId, bId, results);
-        combineSystem.OnCombineFail += (aId, bId) => OnCombineFail(aId, bId);
+		combineSystem.OnCombineSuccess += (aId, bId, results) => OnCombineSuccess(aId, bId, results);
+		combineSystem.OnCombineFail += (aId, bId) => OnCombineFail(aId, bId);
 
-        CustomMinimumSize = new Vector2(400, 200);
-    }
+		CustomMinimumSize = new Vector2(400, 200);
+	}
 
-    private void OnCombineSuccess(string aId, string bId, string[] results)
-    {
-        var cardManager = GetNode<CardManager>("/root/CardManager");
+	private void OnCombineSuccess(string aId, string bId, string[] results)
+	{
+		var cardManager = GetNode<CardManager>("/root/CardManager");
 
-        // Remove input cards from hand
-        RemoveCardById(aId);
-        RemoveCardById(bId);
+		// Remove input cards from hand
+		RemoveCardById(aId);
+		RemoveCardById(bId);
 
-        // Add result cards to hand
-        foreach (var resultId in results)
-        {
-            var template = cardManager.GetCard(resultId);
-            if (template != null)
-                cardManager.AddCardToHand(cardManager.CloneCard(template));
-        }
+		// Add result cards to hand
+		foreach (var resultId in results)
+		{
+			var template = cardManager.GetCard(resultId);
+			if (template != null)
+				cardManager.AddCardToHand(cardManager.CloneCard(template));
+		}
 
-        GD.Print($"Combine SUCCESS: {aId} + {bId} → [{string.Join(", ", results)}]");
-    }
+		GD.Print($"Combine SUCCESS: {aId} + {bId} → [{string.Join(", ", results)}]");
+	}
 
-    private void OnCombineFail(string aId, string bId)
-    {
-        GD.Print($"Combine FAILED: {aId} + {bId}");
-    }
+	private void OnCombineFail(string aId, string bId)
+	{
+		GD.Print($"Combine FAILED: {aId} + {bId}");
+	}
 
-    private void RemoveCardById(string id)
-    {
-        var cardManager = GetNode<CardManager>("/root/CardManager");
-        var hand = cardManager.GetHand();
-        var card = hand.Find(c => c.Id == id);
-        if (card != null)
-            cardManager.RemoveCardFromHand(card);
-    }
+	private void RemoveCardById(string id)
+	{
+		var cardManager = GetNode<CardManager>("/root/CardManager");
+		var hand = cardManager.GetHand();
+		var card = hand.Find(c => c.Id == id);
+		if (card != null)
+			cardManager.RemoveCardFromHand(card);
+	}
 
-    public override bool _CanDropData(Vector2 atPosition, Variant data)
-    {
-        return data.As<CardNode>() != null;
-    }
+	public override bool _CanDropData(Vector2 atPosition, Variant data)
+	{
+		return data.As<CardNode>() != null;
+	}
 
-    public override void _DropData(Vector2 atPosition, Variant data)
-    {
-        var cardNode = data.As<CardNode>();
-        if (cardNode == null) return;
+	public override void _DropData(Vector2 atPosition, Variant data)
+	{
+		var cardNode = data.As<CardNode>();
+		if (cardNode == null) return;
 
-        // Position the card where it was dropped
-        if (cardNode.GetParent() != this)
-        {
-            cardNode.GetParent()?.RemoveChild(cardNode);
-            AddChild(cardNode);
-        }
-        cardNode.Position = atPosition - cardNode.Size / 2;
-        _cards.Add(cardNode);
-    }
+		// Position the card where it was dropped
+		if (cardNode.GetParent() != this)
+		{
+			cardNode.GetParent()?.RemoveChild(cardNode);
+			AddChild(cardNode);
+		}
+		cardNode.Position = atPosition - cardNode.Size / 2;
+		_cards.Add(cardNode);
+	}
 }
 ```
 
@@ -830,80 +830,80 @@ namespace CardSurvival.UI;
 
 public partial class StatusPanel : HBoxContainer
 {
-    private ProgressBar _healthBar;
-    private ProgressBar _hungerBar;
-    private Label _healthLabel;
-    private Label _hungerLabel;
-    private Button _drawButton;
-    private Button _eatButton;
+	private ProgressBar _healthBar;
+	private ProgressBar _hungerBar;
+	private Label _healthLabel;
+	private Label _hungerLabel;
+	private Button _drawButton;
+	private Button _eatButton;
 
-    public override void _Ready()
-    {
-        AddThemeConstantOverride("separation", 8);
+	public override void _Ready()
+	{
+		AddThemeConstantOverride("separation", 8);
 
-        // Health bar
-        var healthGroup = new VBoxContainer();
-        _healthLabel = new Label();
-        _healthLabel.Text = "HP: 100/100";
-        healthGroup.AddChild(_healthLabel);
-        _healthBar = new ProgressBar();
-        _healthBar.MinValue = 0;
-        _healthBar.MaxValue = 100;
-        _healthBar.Value = 100;
-        _healthBar.CustomMinimumSize = new Vector2(120, 0);
-        healthGroup.AddChild(_healthBar);
-        AddChild(healthGroup);
+		// Health bar
+		var healthGroup = new VBoxContainer();
+		_healthLabel = new Label();
+		_healthLabel.Text = "HP: 100/100";
+		healthGroup.AddChild(_healthLabel);
+		_healthBar = new ProgressBar();
+		_healthBar.MinValue = 0;
+		_healthBar.MaxValue = 100;
+		_healthBar.Value = 100;
+		_healthBar.CustomMinimumSize = new Vector2(120, 0);
+		healthGroup.AddChild(_healthBar);
+		AddChild(healthGroup);
 
-        // Hunger bar
-        var hungerGroup = new VBoxContainer();
-        _hungerLabel = new Label();
-        _hungerLabel.Text = "Hunger: 100/100";
-        hungerGroup.AddChild(_hungerLabel);
-        _hungerBar = new ProgressBar();
-        _hungerBar.MinValue = 0;
-        _hungerBar.MaxValue = 100;
-        _hungerBar.Value = 100;
-        _hungerBar.CustomMinimumSize = new Vector2(120, 0);
-        hungerGroup.AddChild(_hungerBar);
-        AddChild(hungerGroup);
+		// Hunger bar
+		var hungerGroup = new VBoxContainer();
+		_hungerLabel = new Label();
+		_hungerLabel.Text = "Hunger: 100/100";
+		hungerGroup.AddChild(_hungerLabel);
+		_hungerBar = new ProgressBar();
+		_hungerBar.MinValue = 0;
+		_hungerBar.MaxValue = 100;
+		_hungerBar.Value = 100;
+		_hungerBar.CustomMinimumSize = new Vector2(120, 0);
+		hungerGroup.AddChild(_hungerBar);
+		AddChild(hungerGroup);
 
-        // Draw button
-        _drawButton = new Button();
-        _drawButton.Text = "抽牌";
-        _drawButton.Pressed += OnDrawPressed;
-        AddChild(_drawButton);
+		// Draw button
+		_drawButton = new Button();
+		_drawButton.Text = "抽牌";
+		_drawButton.Pressed += OnDrawPressed;
+		AddChild(_drawButton);
 
-        // Eat button（手动扣饥饿测试）
-        _eatButton = new Button();
-        _eatButton.Text = "消耗饥饿";
-        _eatButton.Pressed += OnEatPressed;
-        AddChild(_eatButton);
+		// Eat button（手动扣饥饿测试）
+		_eatButton = new Button();
+		_eatButton.Text = "消耗饥饿";
+		_eatButton.Pressed += OnEatPressed;
+		AddChild(_eatButton);
 
-        var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
-        playerSystem.OnStatsChanged += Refresh;
-    }
+		var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
+		playerSystem.OnStatsChanged += Refresh;
+	}
 
-    private void OnDrawPressed()
-    {
-        var cardManager = GetNode<CardManager>("/root/CardManager");
-        cardManager.DrawCard();
-    }
+	private void OnDrawPressed()
+	{
+		var cardManager = GetNode<CardManager>("/root/CardManager");
+		cardManager.DrawCard();
+	}
 
-    private void OnEatPressed()
-    {
-        var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
-        playerSystem.ConsumeHunger(10);
-    }
+	private void OnEatPressed()
+	{
+		var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
+		playerSystem.ConsumeHunger(10);
+	}
 
-    private void Refresh()
-    {
-        var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
-        var state = playerSystem.State;
-        _healthLabel.Text = $"HP: {state.Health}/{state.MaxHealth}";
-        _healthBar.Value = state.Health;
-        _hungerLabel.Text = $"Hunger: {state.Hunger}/{state.MaxHunger}";
-        _hungerBar.Value = state.Hunger;
-    }
+	private void Refresh()
+	{
+		var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
+		var state = playerSystem.State;
+		_healthLabel.Text = $"HP: {state.Health}/{state.MaxHealth}";
+		_healthBar.Value = state.Health;
+		_hungerLabel.Text = $"Hunger: {state.Hunger}/{state.MaxHunger}";
+		_hungerBar.Value = state.Hunger;
+	}
 }
 ```
 
@@ -946,33 +946,33 @@ namespace CardSurvival;
 
 public partial class GameRoot : Control
 {
-    public override void _Ready()
-    {
-        GD.Print("GameRoot: Starting...");
+	public override void _Ready()
+	{
+		GD.Print("GameRoot: Starting...");
 
-        // Layout
-        var mainVBox = new VBoxContainer();
-        mainVBox.SetAnchorsPreset(LayoutPreset.FullRect);
-        mainVBox.AddThemeConstantOverride("separation", 4);
-        AddChild(mainVBox);
+		// Layout
+		var mainVBox = new VBoxContainer();
+		mainVBox.SetAnchorsPreset(LayoutPreset.FullRect);
+		mainVBox.AddThemeConstantOverride("separation", 4);
+		AddChild(mainVBox);
 
-        // Status panel at top
-        var statusPanel = new StatusPanel();
-        mainVBox.AddChild(statusPanel);
+		// Status panel at top
+		var statusPanel = new StatusPanel();
+		mainVBox.AddChild(statusPanel);
 
-        // Table area (drop zone) in middle
-        var tableArea = new TableArea();
-        tableArea.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        mainVBox.AddChild(tableArea);
+		// Table area (drop zone) in middle
+		var tableArea = new TableArea();
+		tableArea.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+		mainVBox.AddChild(tableArea);
 
-        // Hand area at bottom
-        var handArea = new HandArea();
-        mainVBox.AddChild(handArea);
+		// Hand area at bottom
+		var handArea = new HandArea();
+		mainVBox.AddChild(handArea);
 
-        // Draw initial hand
-        var cardManager = GetNode<CardManager>("/root/CardManager");
-        cardManager.DrawInitialHand(5);
-    }
+		// Draw initial hand
+		var cardManager = GetNode<CardManager>("/root/CardManager");
+		cardManager.DrawInitialHand(5);
+	}
 }
 ```
 

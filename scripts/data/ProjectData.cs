@@ -1,0 +1,21 @@
+// scripts/data/ProjectData.cs
+namespace CardSurvival.Data;
+
+public class ProjectData
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Icon { get; set; } = "";
+    public string MaterialId { get; set; } = "";
+    public int RequiredSteps { get; set; } = 1;
+    public string ResultCardId { get; set; } = "";
+    public string UnlockRecipe { get; set; } = "";
+    public string Description { get; set; } = "";
+}
+
+public class ProjectState
+{
+    public string Id { get; set; } = "";
+    public int Progress { get; set; } = 0;
+    public int Required { get; set; } = 1;
+}
