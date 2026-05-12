@@ -18,7 +18,6 @@ public partial class CardNode : Control
 	private bool _initialized;
 	private bool _isDragging;
 	private bool _wasDragged;
-	private bool _mousePressedOnNode;
 	private Vector2 _dragOffset;
 	private Vector2 _dragStart;
 	private Vector2 _dropGlobalPos;
@@ -97,7 +96,6 @@ public partial class CardNode : Control
 
 		if (mb.Pressed)
 		{
-			_mousePressedOnNode = true;
 			_dragStart = GetGlobalMousePosition();
 			_wasDragged = false;
 			if (Data.IsDraggable)
@@ -105,19 +103,11 @@ public partial class CardNode : Control
 		}
 		else if (_isDragging)
 		{
-			_mousePressedOnNode = false;
 			EndDrag();
-		}
-		else if (_mousePressedOnNode)
-		{
-			// 只有鼠标按下和释放都在同一节点上，才算点击
-			_mousePressedOnNode = false;
-			EmitSignal(SignalName.OnCardClicked, this);
 		}
 		else
 		{
-			// 拖拽释放后鼠标落在其他节点上，忽略
-			_mousePressedOnNode = false;
+			EmitSignal(SignalName.OnCardClicked, this);
 		}
 	}
 
@@ -140,12 +130,11 @@ public partial class CardNode : Control
 	{
 		_isDragging = true;
 		_dragOffset = GetGlobalMousePosition() - GlobalPosition;
-		var tree = GetTree();
 		var oldParent = GetParent();
 		oldParent?.RemoveChild(this);
 
 		var layer = new CanvasLayer { Name = "_DragLayer", Layer = 100 };
-		tree?.Root.AddChild(layer);
+		GetTree().Root.AddChild(layer);
 		layer.AddChild(this);
 		GlobalPosition = GetGlobalMousePosition() - _dragOffset;
 	}
@@ -154,7 +143,6 @@ public partial class CardNode : Control
 	{
 		_isDragging = false;
 		_dropGlobalPos = GlobalPosition;
-		_mousePressedOnNode = false;
 		if (_wasDragged)
 			EmitSignal(SignalName.OnCardDragEnded, this);
 		else

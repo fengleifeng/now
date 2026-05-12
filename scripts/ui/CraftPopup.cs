@@ -358,4 +358,3 @@ public partial class CraftPopup : Control
 	}
 
 }
-                                             
