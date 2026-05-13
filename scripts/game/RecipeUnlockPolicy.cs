@@ -1,5 +1,4 @@
 using System.Linq;
-using CardSurvival.Data;
 
 namespace CardSurvival.Game;
 
