@@ -34,7 +34,7 @@ custom_minimum_size = Vector2(580, 0)
 alignment = 1
 separation = 20
 
-[node name="TitleLabel" type="Label" parent="MainContainer"]
+[node name="TitleLabel" type="Label" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "卡牌生存：奇幻森林"
@@ -44,52 +44,52 @@ autowrap_mode = 3
 theme_override_font_size = 36
 theme_override_color/font_color = Color(0.95, 0.9, 0.8, 1)
 
-[node name="Separator1" type="HSeparator" parent="MainContainer"]
+[node name="Separator1" type="HSeparator" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_color/color = Color(0.4, 0.35, 0.3, 1)
 
-[node name="StartButton" type="Button" parent="MainContainer"]
+[node name="StartButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 44)
 autowrap_mode = 3
 text = "开始游戏（默认角色）"
 
-[node name="TraitModeButton" type="Button" parent="MainContainer"]
+[node name="TraitModeButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 44)
 autowrap_mode = 3
 text = "特质开局（可选）"
 
-[node name="ContinueButton" type="Button" parent="MainContainer"]
+[node name="ContinueButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 44)
 autowrap_mode = 3
 text = "继续游戏"
 
-[node name="SettingsButton" type="Button" parent="MainContainer"]
+[node name="SettingsButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 44)
 autowrap_mode = 3
 text = "游戏设置"
 
-[node name="QuitButton" type="Button" parent="MainContainer"]
+[node name="QuitButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 44)
 autowrap_mode = 3
 text = "退出游戏"
 
-[node name="Separator2" type="HSeparator" parent="MainContainer"]
+[node name="Separator2" type="HSeparator" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_color/color = Color(0.4, 0.35, 0.3, 1)
 
-[node name="VersionLabel" type="Label" parent="MainContainer"]
+[node name="VersionLabel" type="Label" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "版本 1.0.0"
