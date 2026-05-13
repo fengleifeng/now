@@ -42,22 +42,34 @@ public partial class CharacterSelect : Control
 
 	public override void _Ready()
 	{
-		_titleLabel = GetNode<Label>("CenterRoot/MainContainer/TitleLabel");
-		_descriptionLabel = GetNode<Label>("CenterRoot/MainContainer/DescriptionLabel");
-		_startButton = GetNode<Button>("CenterRoot/MainContainer/StartButton");
-		_backButton = GetNode<Button>("CenterRoot/MainContainer/BackButton");
-		_selectedLabel = GetNode<Label>("CenterRoot/MainContainer/SelectedLabel");
+		_titleLabel = GetNode<Label>("CenterRoot/MenuPanel/MainContainer/TitleLabel");
+		_descriptionLabel = GetNode<Label>("CenterRoot/MenuPanel/MainContainer/DescriptionLabel");
+		_startButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/StartButton");
+		_backButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/BackButton");
+		_selectedLabel = GetNode<Label>("CenterRoot/MenuPanel/MainContainer/SelectedLabel");
 
-		var grid = GetNode<GridContainer>("CenterRoot/MainContainer/TraitsGrid");
+		var menuPanel = GetNode<PanelContainer>("CenterRoot/MenuPanel");
+		GameTheme.ApplyModalPanel(menuPanel);
+		const int pad = 18;
+		menuPanel.AddThemeConstantOverride("margin_left", pad);
+		menuPanel.AddThemeConstantOverride("margin_top", pad);
+		menuPanel.AddThemeConstantOverride("margin_right", pad);
+		menuPanel.AddThemeConstantOverride("margin_bottom", pad);
+
+		var grid = GetNode<GridContainer>("CenterRoot/MenuPanel/MainContainer/TraitsGrid");
 		foreach (var child in grid.GetChildren())
 		{
 			if (child is Button button)
 			{
+				GameTheme.StyleSidebarButton(button);
 				_traitButtons.Add(button);
 				var captured = button;
 				button.Pressed += () => OnTraitPressed(captured);
 			}
 		}
+
+		GameTheme.StyleSidebarButton(_startButton);
+		GameTheme.StyleSidebarButton(_backButton);
 
 		_startButton.Pressed += OnStartPressed;
 		_backButton.Pressed += OnBackPressed;

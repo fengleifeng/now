@@ -18,9 +18,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0.08, 0.1, 0.12, 1)
 
-[node name="CenterRoot" type="CenterContainer" parent="."]
+[node name="CenterRoot" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,11 +29,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainContainer" type="VBoxContainer" parent="CenterRoot"]
+[node name="MenuPanel" type="PanelContainer" parent="CenterRoot"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -304.0
+offset_top = -268.0
+offset_right = 304.0
+offset_bottom = 268.0
+
+[node name="MainContainer" type="VBoxContainer" parent="CenterRoot/MenuPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(580, 0)
-alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
 separation = 20
+alignment = 1
 
 [node name="TitleLabel" type="Label" parent="CenterRoot/MainContainer"]
 layout_mode = 2
@@ -52,35 +66,40 @@ theme_override_color/color = Color(0.4, 0.35, 0.3, 1)
 [node name="StartButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 48)
+alignment = 1
 autowrap_mode = 3
 text = "开始游戏（默认角色）"
 
 [node name="TraitModeButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 48)
+alignment = 1
 autowrap_mode = 3
 text = "特质开局（可选）"
 
 [node name="ContinueButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 48)
+alignment = 1
 autowrap_mode = 3
 text = "继续游戏"
 
 [node name="SettingsButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 48)
+alignment = 1
 autowrap_mode = 3
 text = "游戏设置"
 
 [node name="QuitButton" type="Button" parent="CenterRoot/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 48)
+alignment = 1
 autowrap_mode = 3
 text = "退出游戏"
 

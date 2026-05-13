@@ -17,12 +17,26 @@ public partial class MainMenu : Control
 	{
 		GetNode<GameSettings>("/root/GameSettings").Reload();
 
-		_titleLabel = GetNode<Label>("CenterRoot/MainContainer/TitleLabel");
-		_startButton = GetNode<Button>("CenterRoot/MainContainer/StartButton");
-		_traitModeButton = GetNode<Button>("CenterRoot/MainContainer/TraitModeButton");
-		_continueButton = GetNode<Button>("CenterRoot/MainContainer/ContinueButton");
-		_settingsButton = GetNode<Button>("CenterRoot/MainContainer/SettingsButton");
-		_quitButton = GetNode<Button>("CenterRoot/MainContainer/QuitButton");
+		var mainVBox = ResolveMainMenuVBox();
+		_titleLabel = mainVBox.GetNode<Label>("TitleLabel");
+		_startButton = mainVBox.GetNode<Button>("StartButton");
+		_traitModeButton = mainVBox.GetNode<Button>("TraitModeButton");
+		_continueButton = mainVBox.GetNode<Button>("ContinueButton");
+		_settingsButton = mainVBox.GetNode<Button>("SettingsButton");
+		_quitButton = mainVBox.GetNode<Button>("QuitButton");
+
+		if (TryGetMenuPanel(out var menuPanel))
+		{
+			GameTheme.ApplyModalPanel(menuPanel);
+			const int pad = 22;
+			menuPanel.AddThemeConstantOverride("margin_left", pad);
+			menuPanel.AddThemeConstantOverride("margin_top", pad);
+			menuPanel.AddThemeConstantOverride("margin_right", pad);
+			menuPanel.AddThemeConstantOverride("margin_bottom", pad);
+		}
+
+		foreach (var b in new[] { _startButton, _traitModeButton, _continueButton, _settingsButton, _quitButton })
+			GameTheme.StyleSidebarButton(b);
 
 		_startButton.Pressed += OnStartPressed;
 		_traitModeButton.Pressed += OnTraitModePressed;
@@ -41,6 +55,26 @@ public partial class MainMenu : Control
 	{
 		I18n.LocaleChanged -= ApplyMenuTexts;
 		base._ExitTree();
+	}
+
+	/// <summary>场景可能为 CenterRoot/MenuPanel/MainContainer（推荐）或旧版 CenterRoot/MainContainer。</summary>
+	private VBoxContainer ResolveMainMenuVBox()
+	{
+		if (HasNode("CenterRoot/MenuPanel/MainContainer"))
+			return GetNode<VBoxContainer>("CenterRoot/MenuPanel/MainContainer");
+		return GetNode<VBoxContainer>("CenterRoot/MainContainer");
+	}
+
+	private bool TryGetMenuPanel(out PanelContainer panel)
+	{
+		if (HasNode("CenterRoot/MenuPanel") && GetNode("CenterRoot/MenuPanel") is PanelContainer p)
+		{
+			panel = p;
+			return true;
+		}
+
+		panel = null!;
+		return false;
 	}
 
 	private void ApplyMenuTexts()
