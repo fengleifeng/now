@@ -30,9 +30,9 @@ grow_vertical = 2
 
 [node name="MainContainer" type="VBoxContainer" parent="CenterRoot"]
 layout_mode = 2
-custom_minimum_size = Vector2(520, 0)
+custom_minimum_size = Vector2(580, 0)
 alignment = 1
-separation = 18
+separation = 20
 
 [node name="TitleLabel" type="Label" parent="MainContainer"]
 layout_mode = 2
