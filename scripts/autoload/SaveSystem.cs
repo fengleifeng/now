@@ -59,7 +59,7 @@ public partial class SaveSystem : Node
         _sessionId = Guid.NewGuid().ToString("N");
 
     public bool HasSaveFile() =>
-        FileAccess.FileExists(ProjectSettings.GlobalizePath(QuickSavePath));
+        Godot.FileAccess.FileExists(ProjectSettings.GlobalizePath(QuickSavePath));
 
     public void SaveGame(PlayerState state, CardManager cards, MapSystem map, TimeSystem time, PlayerSystem player, EffectSystem effects)
     {
@@ -84,9 +84,9 @@ public partial class SaveSystem : Node
     public bool LoadGame(PlayerState state, CardManager cards, MapSystem map, TimeSystem time, PlayerSystem player, EffectSystem effects)
     {
         var path = ProjectSettings.GlobalizePath(QuickSavePath);
-        if (!FileAccess.FileExists(path)) return false;
+        if (!Godot.FileAccess.FileExists(path)) return false;
 
-        using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+        using var file = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Read);
         var parsed = Json.ParseString(file.GetAsText());
         if (parsed.VariantType != Variant.Type.Dictionary) return false;
 
@@ -449,12 +449,12 @@ public partial class SaveSystem : Node
         var final = ProjectSettings.GlobalizePath(userPath);
         var tmp = final + ".tmp";
         {
-            using var w = FileAccess.Open(tmp, FileAccess.ModeFlags.Write);
+            using var w = Godot.FileAccess.Open(tmp, Godot.FileAccess.ModeFlags.Write);
             if (!w.IsOpen()) return false;
             w.StoreString(content);
         }
 
-        if (FileAccess.FileExists(final))
+        if (Godot.FileAccess.FileExists(final))
             DirAccess.RemoveAbsolute(final);
         return DirAccess.RenameAbsolute(tmp, final) == Error.Ok;
     }

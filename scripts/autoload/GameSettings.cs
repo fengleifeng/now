@@ -92,9 +92,9 @@ public partial class GameSettings : Node
 	{
 		try
 		{
-			if (FileAccess.FileExists(UserSettingsPath))
+			if (Godot.FileAccess.FileExists(UserSettingsPath))
 				_data = DeserializeOrDefault(ReadAllText(UserSettingsPath));
-			else if (FileAccess.FileExists(ResSettingsPath))
+			else if (Godot.FileAccess.FileExists(ResSettingsPath))
 				_data = DeserializeOrDefault(ReadAllText(ResSettingsPath));
 			else
 				_data = new GameSettingsData();
@@ -169,7 +169,7 @@ public partial class GameSettings : Node
 		try
 		{
 			var json = JsonSerializer.Serialize(_data, JsonOptions);
-			using var f = FileAccess.Open(UserSettingsPath, FileAccess.ModeFlags.Write);
+			using var f = Godot.FileAccess.Open(UserSettingsPath, Godot.FileAccess.ModeFlags.Write);
 			if (f.IsOpen())
 				f.StoreString(json);
 		}
@@ -190,7 +190,7 @@ public partial class GameSettings : Node
 
 	private static string ReadAllText(string path)
 	{
-		using var f = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+		using var f = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Read);
 		return f.IsOpen() ? f.GetAsString() : "{}";
 	}
 

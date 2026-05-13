@@ -80,13 +80,13 @@ public partial class I18n : Node
 		_registered.Clear();
 
 		var path = ProjectSettings.GlobalizePath(ContentPaths.GameStrings);
-		if (!FileAccess.FileExists(path))
+		if (!Godot.FileAccess.FileExists(path))
 		{
 			GD.PrintErr($"[I18n] Missing locale file: {ContentPaths.GameStrings}");
 			return;
 		}
 
-		using var f = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+		using var f = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Read);
 		if (!f.IsOpen())
 		{
 			GD.PrintErr($"[I18n] Cannot open: {path}");
