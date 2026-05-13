@@ -191,7 +191,7 @@ public partial class GameSettings : Node
 	private static string ReadAllText(string path)
 	{
 		using var f = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Read);
-		return f.IsOpen() ? f.GetAsString() : "{}";
+		return f.IsOpen() ? f.GetAsText() : "{}";
 	}
 
 	private static GameSettingsData DeserializeOrDefault(string json)
