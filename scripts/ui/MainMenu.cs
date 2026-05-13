@@ -17,12 +17,22 @@ public partial class MainMenu : Control
 	{
 		GetNode<GameSettings>("/root/GameSettings").Reload();
 
-		_titleLabel = GetNode<Label>("CenterRoot/MainContainer/TitleLabel");
-		_startButton = GetNode<Button>("CenterRoot/MainContainer/StartButton");
-		_traitModeButton = GetNode<Button>("CenterRoot/MainContainer/TraitModeButton");
-		_continueButton = GetNode<Button>("CenterRoot/MainContainer/ContinueButton");
-		_settingsButton = GetNode<Button>("CenterRoot/MainContainer/SettingsButton");
-		_quitButton = GetNode<Button>("CenterRoot/MainContainer/QuitButton");
+		_titleLabel = GetNode<Label>("CenterRoot/MenuPanel/MainContainer/TitleLabel");
+		_startButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/StartButton");
+		_traitModeButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/TraitModeButton");
+		_continueButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/ContinueButton");
+		_settingsButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/SettingsButton");
+		_quitButton = GetNode<Button>("CenterRoot/MenuPanel/MainContainer/QuitButton");
+
+		var menuPanel = GetNode<PanelContainer>("CenterRoot/MenuPanel");
+		GameTheme.ApplyModalPanel(menuPanel);
+		const int pad = 22;
+		menuPanel.AddThemeConstantOverride("margin_left", pad);
+		menuPanel.AddThemeConstantOverride("margin_top", pad);
+		menuPanel.AddThemeConstantOverride("margin_right", pad);
+		menuPanel.AddThemeConstantOverride("margin_bottom", pad);
+		foreach (var b in new[] { _startButton, _traitModeButton, _continueButton, _settingsButton, _quitButton })
+			GameTheme.StyleSidebarButton(b);
 
 		_startButton.Pressed += OnStartPressed;
 		_traitModeButton.Pressed += OnTraitModePressed;
