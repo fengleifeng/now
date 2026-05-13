@@ -24,8 +24,93 @@ public partial class PlayerSystem : Node
 
     public void SetTraits(List<CharacterTrait> traits)
     {
+        ResetTraitDerivedNumericState();
         Traits = new List<CharacterTrait>(traits);
         ApplyTraitBonuses();
+        EmitSignal(SignalName.OnStatsChanged);
+    }
+
+    /// <summary>新游戏默认幸存者：无特质，营养为 <see cref="PlayerState"/> 默认值。</summary>
+    public void BeginNewGameWithDefaults()
+    {
+        ResetState();
+    }
+
+    /// <summary>每游戏日结算营养消耗。</summary>
+    public void TickNutritionDaily()
+    {
+        State.Protein = Math.Max(0, State.Protein - 4);
+        State.Vitamins = Math.Max(0, State.Vitamins - 3);
+        State.Carbohydrate = Math.Max(0, State.Carbohydrate - 3);
+        if (State.Protein < 25)
+            UpdateImmunity(-3);
+        if (State.Vitamins < 20)
+            UpdateImmunity(-2);
+        if (State.Carbohydrate > 75 && State.Hunger > 70)
+            State.BodyFatIndex = Math.Min(100, State.BodyFatIndex + 1);
+        else if (State.Protein > 60 && State.Hunger > 40)
+            State.BodyFatIndex = Math.Max(8, State.BodyFatIndex - 1);
+        EmitSignal(SignalName.OnStatsChanged);
+    }
+
+    /// <summary>进食后根据卡牌或标签启发增加营养。</summary>
+    public void ApplyMealNutrients(CardData card)
+    {
+        var p = card.ProteinValue;
+        var v = card.VitaminValue;
+        var c = card.CarbValue;
+        var bf = card.BodyFatDelta;
+        if (p == 0 && v == 0 && c == 0 && bf == 0
+            && (card.FoodValue > 0 || card.Tags.Contains(CardTag.Food)))
+            NutrientHeuristic(card, ref p, ref v, ref c, ref bf);
+
+        State.Protein = Math.Clamp(State.Protein + p, 0, 100);
+        State.Vitamins = Math.Clamp(State.Vitamins + v, 0, 100);
+        State.Carbohydrate = Math.Clamp(State.Carbohydrate + c, 0, 100);
+        State.BodyFatIndex = Math.Clamp(State.BodyFatIndex + bf, 8, 95);
+        EmitSignal(SignalName.OnStatsChanged);
+    }
+
+    public float GetBodyFatMoveMultiplier()
+    {
+        var x = Math.Clamp(State.BodyFatIndex - 22, 0, 45);
+        return 1f + x * 0.0035f;
+    }
+
+    private static void NutrientHeuristic(CardData card, ref int p, ref int v, ref int c, ref int bf)
+    {
+        if (card.Tags.Contains(CardTag.Meat))
+        {
+            p += card.Tags.Contains(CardTag.Cooked) ? 18 : 12;
+            v += 2;
+            c += card.Tags.Contains(CardTag.Cooked) ? 8 : 0;
+            bf += card.Tags.Contains(CardTag.Raw) ? 1 : 0;
+        }
+        else if (card.Tags.Contains(CardTag.Berry) || card.Tags.Contains(CardTag.Plant))
+        {
+            v += 10;
+            c += 6;
+            bf -= 1;
+        }
+        if (card.Tags.Contains(CardTag.Aquatic) && card.Tags.Contains(CardTag.Food))
+        {
+            p += 10;
+            v += 3;
+            c += 2;
+        }
+    }
+
+    private void ResetTraitDerivedNumericState()
+    {
+        State.HungerRate = 1f;
+        State.ThirstRate = 1f;
+        State.CombineBonus = 0f;
+        State.HealBonus = 0f;
+        State.HuntBonus = 0f;
+        State.BuildSpeed = 1f;
+        State.DiscoverBonus = 0f;
+        State.MoveEnergyCostMultiplier = 1f;
+        State.MaxWeight = 50;
     }
 
     public void RequestLoadSave()

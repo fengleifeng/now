@@ -13,6 +13,7 @@ public partial class MapSystem : Node
     private readonly Dictionary<string, LocationData> _locations = new();
     private readonly Dictionary<string, List<CardData>> _sceneItems = new();
     private readonly Dictionary<string, List<CardData>> _environmentItems = new();
+    private readonly Dictionary<string, float> _envRegenCarry = new();
     private bool _environmentInitialized;
     public string CurrentLocation { get; private set; } = "forest";
 
@@ -27,51 +28,138 @@ public partial class MapSystem : Node
             _environmentItems[loc.Id] = new List<CardData>();
         }
 
+        var time = GetNodeOrNull<TimeSystem>("/root/TimeSystem");
+        if (time != null)
+            time.Connect(TimeSystem.SignalName.OnDayChanged, Callable.From((int _) => TickEnvironmentRegeneration()));
+
         GD.Print($"[MapSystem] Loaded {_locations.Count} locations");
+    }
+
+    /// <summary>每个游戏日结束时为各地区环境资源补再生（受上限与 JSON 中 RegenPerDay×RegenMultiplier 约束）。</summary>
+    public void TickEnvironmentRegeneration()
+    {
+        EnsureEnvironmentInitialized();
+        var cardManager = GetNode<CardManager>("/root/CardManager");
+        var anySpawned = false;
+
+        foreach (var loc in _locations.Values)
+        {
+            var rules = DeduplicateEnvRules(loc);
+            if (rules.Count == 0) continue;
+            if (!_environmentItems.TryGetValue(loc.Id, out var envList)) continue;
+
+            foreach (var rule in rules)
+            {
+                var effective = rule.GetEffectiveRegenPerDay();
+                if (effective <= 0f) continue;
+
+                var count = envList.Count(c => c.Id == rule.CardId);
+                var room = rule.Max - count;
+                if (room <= 0) continue;
+
+                var key = RegenKey(loc.Id, rule.CardId);
+                var carry = _envRegenCarry.GetValueOrDefault(key, 0f) + effective;
+                var spawn = (int)System.Math.Floor(carry);
+                if (spawn > room) spawn = room;
+                if (spawn <= 0)
+                {
+                    _envRegenCarry[key] = carry;
+                    continue;
+                }
+
+                carry -= spawn;
+                _envRegenCarry[key] = carry;
+                for (var i = 0; i < spawn; i++)
+                {
+                    var card = cardManager.CreateCardInstance(rule.CardId);
+                    if (card != null)
+                        envList.Add(card);
+                }
+
+                anySpawned = true;
+            }
+        }
+
+        if (anySpawned)
+            EmitSignal(SignalName.OnSceneItemsChanged, CurrentLocation);
+    }
+
+    private static string RegenKey(string locationId, string cardId) => $"{locationId}|{cardId}";
+
+    private static List<LocationEnvironmentResource> DeduplicateEnvRules(LocationData loc)
+    {
+        var list = loc.EnvironmentResources;
+        if (list == null || list.Count == 0)
+            return new List<LocationEnvironmentResource>();
+
+        return list
+            .Where(r => !string.IsNullOrWhiteSpace(r.CardId))
+            .GroupBy(r => r.CardId)
+            .Select(g =>
+            {
+                if (g.Count() > 1)
+                    GD.PushWarning($"[MapSystem] 地区 {loc.Id} 中资源 {g.Key} 在 EnvironmentResources 中重复，已采用最后一条配置。");
+                return g.Last();
+            })
+            .ToList();
     }
 
     private void InitializeEnvironmentItems()
     {
         foreach (var items in _environmentItems.Values)
             items.Clear();
+        _envRegenCarry.Clear();
 
         var cardManager = GetNode<CardManager>("/root/CardManager");
 
-        if (_environmentItems.ContainsKey("forest"))
+        foreach (var loc in _locations.Values)
         {
-            var forestEnv = _environmentItems["forest"];
-            AddEnvCard(forestEnv, cardManager, "tree", 3);
-            AddEnvCard(forestEnv, cardManager, "bush", 2);
-            AddEnvCard(forestEnv, cardManager, "rock", 1);
-        }
-
-        if (_environmentItems.ContainsKey("lake"))
-        {
-            var lakeEnv = _environmentItems["lake"];
-            AddEnvCard(lakeEnv, cardManager, "rock", 2);
-            AddEnvCard(lakeEnv, cardManager, "bush", 1);
-        }
-
-        if (_environmentItems.ContainsKey("mountain"))
-        {
-            var mountainEnv = _environmentItems["mountain"];
-            AddEnvCard(mountainEnv, cardManager, "rock", 3);
-            AddEnvCard(mountainEnv, cardManager, "tree", 1);
-        }
-
-        if (_environmentItems.ContainsKey("plains"))
-        {
-            var plainsEnv = _environmentItems["plains"];
-            AddEnvCard(plainsEnv, cardManager, "bush", 3);
-        }
-
-        if (_environmentItems.ContainsKey("cave"))
-        {
-            var caveEnv = _environmentItems["cave"];
-            AddEnvCard(caveEnv, cardManager, "rock", 2);
+            if (!_environmentItems.TryGetValue(loc.Id, out var envList)) continue;
+            foreach (var rule in DeduplicateEnvRules(loc))
+            {
+                var n = rule.GetInitialCount();
+                AddEnvCard(envList, cardManager, rule.CardId, n);
+            }
         }
 
         _environmentInitialized = true;
+    }
+
+    /// <summary>读档前清空场景与环境实例（不填充默认环境）。</summary>
+    public void PrepareWorldForSaveLoad()
+    {
+        foreach (var items in _sceneItems.Values)
+            items.Clear();
+        foreach (var items in _environmentItems.Values)
+            items.Clear();
+        _envRegenCarry.Clear();
+        _environmentInitialized = true;
+    }
+
+    /// <summary>存档未含环境时，按 locations.json 恢复默认环境。</summary>
+    public void RestoreDefaultEnvironmentIfEmpty()
+    {
+        if (_environmentItems.Values.Any(v => v.Count > 0)) return;
+        _environmentInitialized = false;
+        EnsureEnvironmentInitialized();
+    }
+
+    public void ImportEnvRegenFromSave(Godot.Collections.Dictionary? data)
+    {
+        _envRegenCarry.Clear();
+        if (data == null) return;
+        foreach (var kv in data)
+            _envRegenCarry[kv.Key.ToString()] = (float)kv.Value;
+    }
+
+    public Dictionary<string, float> ExportEnvRegenForSave() => new(_envRegenCarry);
+
+    /// <summary>读档时写入环境卡（不触发默认环境生成）。</summary>
+    public void AddEnvironmentCardForSave(string locationId, CardData card)
+    {
+        if (!_environmentItems.TryGetValue(locationId, out var list))
+            return;
+        list.Add(card);
     }
 
     private void EnsureEnvironmentInitialized()
@@ -82,7 +170,7 @@ public partial class MapSystem : Node
 
     private void AddEnvCard(List<CardData> envList, CardManager cardManager, string cardId, int count)
     {
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var card = cardManager.CreateCardInstance(cardId);
             if (card != null)
@@ -163,17 +251,24 @@ public partial class MapSystem : Node
         return GetEnvironmentCards(CurrentLocation);
     }
 
-    public void AddCardToScene(string locationId, CardData card)
+    public void AddCardToScene(string locationId, CardData card, bool emitChanged = true)
     {
         if (!_sceneItems.ContainsKey(locationId))
             _sceneItems[locationId] = new List<CardData>();
         _sceneItems[locationId].Add(card);
-        EmitSignal(SignalName.OnSceneItemsChanged, locationId);
+        if (emitChanged)
+            EmitSignal(SignalName.OnSceneItemsChanged, locationId);
     }
 
     public void AddCardToCurrentScene(CardData card)
     {
         AddCardToScene(CurrentLocation, card);
+    }
+
+    public void EmitSceneItemsChangedAllLocations()
+    {
+        foreach (var id in _locations.Keys)
+            EmitSignal(SignalName.OnSceneItemsChanged, id);
     }
 
     public void RemoveCardFromScene(string locationId, CardData card)
@@ -201,6 +296,7 @@ public partial class MapSystem : Node
         foreach (var items in _sceneItems.Values)
             items.Clear();
         _environmentInitialized = false;
+        _envRegenCarry.Clear();
         EnsureEnvironmentInitialized();
         EmitSignal(SignalName.OnLocationChanged, CurrentLocation);
         EmitSignal(SignalName.OnSceneItemsChanged, CurrentLocation);

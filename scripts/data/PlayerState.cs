@@ -19,6 +19,16 @@ public class PlayerState
 	public int Immunity { get; set; } = 100;      // 新增：免疫力
 	public int MaxImmunity { get; set; } = 100;   // 新增
 
+	// === 营养与体成分（0–100，后续角色/特质可改初值与成长）===
+	/// <summary>体脂倾向，高值偏肥胖，影响移动精力消耗等。</summary>
+	public int BodyFatIndex { get; set; } = 22;
+	/// <summary>蛋白质储备，长期过低影响免疫与恢复。</summary>
+	public int Protein { get; set; } = 80;
+	/// <summary>维生素储备。</summary>
+	public int Vitamins { get; set; } = 80;
+	/// <summary>碳水化合物（能量底物）。</summary>
+	public int Carbohydrate { get; set; } = 72;
+
 	// === 环境 ===
 	public int Temperature { get; set; } = 25;
 	public int MinTemperature { get; set; } = -10;

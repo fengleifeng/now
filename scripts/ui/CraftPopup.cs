@@ -6,6 +6,7 @@ namespace CardSurvival.UI;
 public partial class CraftPopup : Control
 {
 	public event Action<CombineRule>? OnCraftRecipe;
+	public event Action<CombineRule>? OnStageRecipe;
 	public event Action<string>? OnBuildProject;
 	public event Action<List<CardData>>? OnFreeCraft;
 	public event Action? OnClearFreeCraft;
@@ -35,10 +36,13 @@ public partial class CraftPopup : Control
 
 	private void BuildUI()
 	{
-		AddChild(CreateOverlay());
+		ModalUi.AddDimOverlay(this, () => OnClose?.Invoke());
+		var center = ModalUi.AddCenterLayer(this);
 
-		var panel = CreateCenteredPanel(new Vector2(560, 520));
-		AddChild(panel);
+		var shell = new PanelContainer();
+		shell.CustomMinimumSize = new Vector2(560, 520);
+		GameTheme.ApplyModalPanel(shell);
+		center.AddChild(shell);
 
 		var margin = new MarginContainer();
 		margin.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -46,7 +50,7 @@ public partial class CraftPopup : Control
 		margin.AddThemeConstantOverride("margin_right", 12);
 		margin.AddThemeConstantOverride("margin_top", 10);
 		margin.AddThemeConstantOverride("margin_bottom", 10);
-		panel.AddChild(margin);
+		shell.AddChild(margin);
 
 		var root = new VBoxContainer();
 		root.AddThemeConstantOverride("separation", 6);
@@ -85,7 +89,8 @@ public partial class CraftPopup : Control
 		{
 			CustomMinimumSize = new Vector2(0, 70),
 			HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
-			VerticalScrollMode = ScrollContainer.ScrollMode.Disabled
+			VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+			ClipContents = true
 		};
 		root.AddChild(handScroll);
 
@@ -93,27 +98,6 @@ public partial class CraftPopup : Control
 		_handRow.AddThemeConstantOverride("separation", 6);
 		handScroll.AddChild(_handRow);
 		RefreshFreeCraft();
-	}
-
-	private ColorRect CreateOverlay()
-	{
-		var overlay = new ColorRect { Color = new Color(0, 0, 0, 0.62f) };
-		overlay.SetAnchorsPreset(LayoutPreset.FullRect);
-		overlay.MouseFilter = MouseFilterEnum.Stop;
-		overlay.GuiInput += e =>
-		{
-			if (e is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
-				OnClose?.Invoke();
-		};
-		return overlay;
-	}
-
-	private static Panel CreateCenteredPanel(Vector2 size)
-	{
-		var panel = new Panel();
-		panel.CustomMinimumSize = size;
-		panel.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.Center);
-		return panel;
 	}
 
 	private HBoxContainer CreateTitleRow(string titleText)
@@ -127,6 +111,7 @@ public partial class CraftPopup : Control
 		row.AddChild(title);
 
 		var close = new Button { Text = "关闭", CustomMinimumSize = new Vector2(70, 28) };
+		GameTheme.StyleSidebarButton(close);
 		close.Pressed += () => OnClose?.Invoke();
 		row.AddChild(close);
 		return row;
@@ -142,7 +127,7 @@ public partial class CraftPopup : Control
 
 	private static VBoxContainer MakeList(VBoxContainer parent, int height, bool vertical)
 	{
-		var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(0, height) };
+		var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(0, height), ClipContents = true };
 		scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
 		scroll.VerticalScrollMode = vertical ? ScrollContainer.ScrollMode.Auto : ScrollContainer.ScrollMode.Disabled;
 		parent.AddChild(scroll);
@@ -186,10 +171,14 @@ public partial class CraftPopup : Control
 			label.ClipText = true;
 			row.AddChild(label);
 
-			var button = new Button { Text = "合成", Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(70, 24) };
+			var stageBtn = new Button { Text = "暂存", Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(56, 24) };
 			var captured = rule;
-			button.Pressed += () => OnCraftRecipe?.Invoke(captured);
-			row.AddChild(button);
+			stageBtn.Pressed += () => OnStageRecipe?.Invoke(captured);
+			row.AddChild(stageBtn);
+
+			var craftBtn = new Button { Text = "立即", Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(56, 24) };
+			craftBtn.Pressed += () => OnCraftRecipe?.Invoke(captured);
+			row.AddChild(craftBtn);
 		}
 	}
 

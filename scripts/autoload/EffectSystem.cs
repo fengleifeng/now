@@ -83,6 +83,15 @@ public partial class EffectSystem : Node
         GD.Print($"[EffectSystem] Added effect: {effectId} (intensity={intensity})");
     }
 
+    /// <summary> 移除玩家身上第一个疾病效果（若无则 false）。用于夜仪等主动技能。 </summary>
+    public bool TryRemoveFirstDisease()
+    {
+        var disease = GetDiseases().FirstOrDefault();
+        if (disease == null) return false;
+        RemoveEffect(disease.EffectId);
+        return true;
+    }
+
     /// <summary> 移除指定效果 </summary>
     public void RemoveEffect(string effectId)
     {
@@ -171,6 +180,39 @@ public partial class EffectSystem : Node
     public void ClearAll()
     {
         _activeEffects.Clear();
+    }
+
+    public Godot.Collections.Array SerializeActiveEffects()
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var e in _activeEffects)
+        {
+            arr.Add(new Godot.Collections.Dictionary<string, Variant>
+            {
+                { "EffectId", e.EffectId },
+                { "RemainingTurns", e.RemainingTurns },
+                { "Intensity", e.Intensity }
+            });
+        }
+        return arr;
+    }
+
+    public void DeserializeActiveEffects(Godot.Collections.Array? data)
+    {
+        _activeEffects.Clear();
+        if (data == null) return;
+        foreach (var item in data)
+        {
+            if (item.VariantType != Variant.Type.Dictionary) continue;
+            var d = new Godot.Collections.Dictionary<string, Variant>((Godot.Collections.Dictionary)item);
+            if (!d.ContainsKey("EffectId")) continue;
+            _activeEffects.Add(new ActiveEffect
+            {
+                EffectId = (string)d["EffectId"],
+                RemainingTurns = d.ContainsKey("RemainingTurns") ? (int)d["RemainingTurns"] : 1,
+                Intensity = d.ContainsKey("Intensity") ? (int)d["Intensity"] : 1
+            });
+        }
     }
 
     // ====================================

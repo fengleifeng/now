@@ -10,13 +10,20 @@ config_version=5
 
 [application]
 
-config/name="now"
+config/name="卡牌生存"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "C#", "Mobile")
 config/icon="res://icon.svg"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
 [autoload]
 
+GameSettings="*res://scripts/autoload/GameSettings.cs"
 MapSystem="*res://scripts/autoload/MapSystem.cs"
 PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
 CardManager="*res://scripts/autoload/CardManager.cs"

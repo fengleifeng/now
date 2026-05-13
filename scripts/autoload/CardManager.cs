@@ -1,5 +1,6 @@
 using Godot;
 using CardSurvival.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,6 +20,14 @@ public partial class CardManager : Node
     private readonly Random _random = new();
     private const int MaxHandSlots = 8; // 最大手牌槽位数（堆叠算1槽）
     private MapSystem? _mapSystem;
+
+    /// <summary>手牌中「待合成」占位卡 Id，非 cards.json 定义。</summary>
+    public const string StagedCombineDisplayId = "__staged_combine__";
+
+    private CombineRule? _stagedCombineRule;
+    private CardData? _stagedDisplayCard;
+    private List<CardData>? _stagedConsumeOrder;
+    private CardData? _anchoredFixed;
 
     // Cache of drawable card IDs to avoid filtering every call
     private List<string>? _cachedDrawableIds;
@@ -135,6 +144,88 @@ public partial class CardManager : Node
     /// <summary> 获取手牌原始数据（已堆叠） </summary>
     public List<CardData> GetHand() => _hand;
 
+    /// <summary>不含已暂存用于合成的材料（用于判定、选卡、配方列表）。</summary>
+    public List<CardData> GetPlayableHand() =>
+        _hand.Where(c => !c.IsStagedIngredient).ToList();
+
+    /// <summary>手牌区展示顺序：可用手牌 + 一张「待合成」占位（若有）。</summary>
+    public List<CardData> GetHandForUi()
+    {
+        var list = GetPlayableHand();
+        if (_stagedCombineRule != null && _stagedDisplayCard != null)
+            list.Add(_stagedDisplayCard);
+        return list;
+    }
+
+    public static bool IsStagedCombineDisplay(CardData? card) =>
+        card != null && card.Id == StagedCombineDisplayId;
+
+    public bool HasStagedRecipe => _stagedCombineRule != null;
+
+    public CombineRule? GetStagedCombineRule() => _stagedCombineRule;
+
+    public CardData? GetAnchoredCard() => _anchoredFixed;
+
+    /// <summary>固定栏（不可拖动的建筑等）；被替换的旧卡会落到当前场景。</summary>
+    public void SetAnchoredCard(CardData? incoming)
+    {
+        if (incoming == null)
+        {
+            _anchoredFixed = null;
+            return;
+        }
+
+        var prev = _anchoredFixed;
+        _anchoredFixed = incoming;
+        if (prev != null)
+            GetMapSystem().AddCardToCurrentScene(prev);
+    }
+
+    public bool TryStageRecipe(CombineRule rule, CombineSystem combine)
+    {
+        if (_stagedCombineRule != null) return false;
+        var play = GetPlayableHand();
+        var picked = combine.SelectCraftConsumablesWithoutLearning(rule, play);
+        if (picked == null || picked.Count == 0) return false;
+
+        foreach (var c in picked.Distinct())
+        {
+            c.IsStagedIngredient = true;
+            c.IsDraggable = false;
+        }
+
+        _stagedCombineRule = rule;
+        _stagedDisplayCard = BuildStagedDisplayCard(rule);
+        _stagedConsumeOrder = new List<CardData>(picked);
+        return true;
+    }
+
+    public void CancelStagedRecipe()
+    {
+        foreach (var c in _hand.Where(c => c.IsStagedIngredient))
+        {
+            c.IsStagedIngredient = false;
+            if (_cardDefs.TryGetValue(c.Id, out var def))
+                c.IsDraggable = def.IsDraggable;
+        }
+
+        _stagedCombineRule = null;
+        _stagedDisplayCard = null;
+        _stagedConsumeOrder = null;
+    }
+
+    public void ClearStagedCombineMetaOnly()
+    {
+        _stagedCombineRule = null;
+        _stagedDisplayCard = null;
+        _stagedConsumeOrder = null;
+    }
+
+    public IReadOnlyList<CardData>? GetStagedConsumeOrder() => _stagedConsumeOrder;
+
+    public List<CardData> GetStagedIngredientCardsSnapshot() =>
+        _hand.Where(c => c.IsStagedIngredient).ToList();
+
     public void AddCardToHand(CardData card)
     {
         AddToHandWithLimit(card);
@@ -146,6 +237,16 @@ public partial class CardManager : Node
     /// </summary>
     public void RemoveCardFromHand(CardData card)
     {
+        if (_hand.Contains(card))
+        {
+            if (card.Stack > 1)
+                card.Stack--;
+            else
+                _hand.Remove(card);
+            EmitSignal(SignalName.OnCardRemoved, card.Id);
+            return;
+        }
+
         var existing = _hand.FirstOrDefault(c => c.Id == card.Id);
         if (existing == null) return;
 
@@ -165,6 +266,16 @@ public partial class CardManager : Node
     /// </summary>
     public void ConsumeCardFromHand(CardData card, string reason)
     {
+        if (_hand.Contains(card))
+        {
+            if (card.Stack > 1)
+                card.Stack--;
+            else
+                _hand.Remove(card);
+            EmitSignal(SignalName.OnCardConsumed, card.Id, reason);
+            return;
+        }
+
         var existing = _hand.FirstOrDefault(c => c.Id == card.Id);
         if (existing == null) return;
 
@@ -182,14 +293,15 @@ public partial class CardManager : Node
     /// <summary>
     /// 检查手牌中是否有指定ID的卡（堆叠卡也返回true）
     /// </summary>
-    public bool HasCardInHand(string id) => _hand.Any(c => c.Id == id);
+    public bool HasCardInHand(string id) =>
+        _hand.Any(c => c.Id == id && !c.IsStagedIngredient);
 
     /// <summary>
     /// 获取手牌中某张卡的总堆叠数
     /// </summary>
     public int GetCardStackInHand(string id)
     {
-        var card = _hand.FirstOrDefault(c => c.Id == id);
+        var card = _hand.FirstOrDefault(c => c.Id == id && !c.IsStagedIngredient);
         return card?.Stack ?? 0;
     }
 
@@ -248,6 +360,7 @@ public partial class CardManager : Node
 
     public void MoveHandCardToScene(CardData card)
     {
+        if (card.IsStagedIngredient || IsStagedCombineDisplay(card)) return;
         // 堆叠处理：从堆叠中取出1个放场景
         var existing = _hand.FirstOrDefault(c => c.Id == card.Id);
         if (existing == null) return;
@@ -270,24 +383,50 @@ public partial class CardManager : Node
     //  搜索与查询
     // ============================================================
 
-    public CardData? FindHandCardByTag(CardTag tag)
-    {
-        return _hand.FirstOrDefault(c => c.Tags.Contains(tag));
-    }
+    public CardData? FindHandCardByTag(CardTag tag) =>
+        _hand.FirstOrDefault(c => c.Tags.Contains(tag) && !c.IsStagedIngredient);
 
-    public List<CardData> GetHandCardsByType(CardType type)
-    {
-        return _hand.Where(c => c.Type == type).ToList();
-    }
+    public List<CardData> GetHandCardsByType(CardType type) =>
+        _hand.Where(c => c.Type == type && !c.IsStagedIngredient).ToList();
 
     // ============================================================
     //  耐久
     // ============================================================
 
+    /// <summary> 手牌中是否存在可磨利（未满耐久）的工具或武器。 </summary>
+    public bool CanSharpenToolInHand()
+    {
+        foreach (var card in _hand.Where(c => !c.IsStagedIngredient))
+        {
+            if (card.Type != CardType.Tool && card.Type != CardType.Weapon) continue;
+            if (card.Durability <= 0) continue;
+            if (!_cardDefs.TryGetValue(card.Id, out var def)) continue;
+            if (def.Durability <= 0) continue;
+            if (card.Durability < def.Durability) return true;
+        }
+        return false;
+    }
+
+    /// <summary> 将第一张未满耐久的工具/武器 +1 耐久（不超过卡表默认上限）。 </summary>
+    public bool TrySharpenToolInHand()
+    {
+        foreach (var card in _hand.Where(c => !c.IsStagedIngredient))
+        {
+            if (card.Type != CardType.Tool && card.Type != CardType.Weapon) continue;
+            if (card.Durability <= 0) continue;
+            if (!_cardDefs.TryGetValue(card.Id, out var def)) continue;
+            if (def.Durability <= 0) continue;
+            if (card.Durability >= def.Durability) continue;
+            card.Durability = Math.Min(def.Durability, card.Durability + 1);
+            return true;
+        }
+        return false;
+    }
+
     public void TickDurability()
     {
         var handToRemove = new List<CardData>();
-        foreach (var card in _hand)
+        foreach (var card in _hand.Where(c => !c.IsStagedIngredient))
         {
             if (card.Durability > 0)
             {
@@ -323,6 +462,10 @@ public partial class CardManager : Node
     {
         _hand.Clear();
         _tableCards.Clear();
+        _stagedCombineRule = null;
+        _stagedDisplayCard = null;
+        _anchoredFixed = null;
+        _stagedConsumeOrder = null;
         EmitSignal(SignalName.OnCardRemoved, "");
     }
 
@@ -337,7 +480,7 @@ public partial class CardManager : Node
     private void AddToHandWithLimit(CardData card)
     {
         // 尝试堆叠到现有卡上
-        var existing = _hand.FirstOrDefault(c => c.Id == card.Id && c.Stack < c.MaxStack);
+        var existing = _hand.FirstOrDefault(c => c.Id == card.Id && c.Stack < c.MaxStack && !c.IsStagedIngredient);
         if (existing != null)
         {
             var space = existing.MaxStack - existing.Stack;
@@ -366,6 +509,35 @@ public partial class CardManager : Node
         }
     }
 
+    private CardData BuildStagedDisplayCard(CombineRule rule)
+    {
+        var matText = DescribeMaterialsShort(rule);
+        var resText = rule.Results.Count == 0
+            ? "消除"
+            : string.Join("、", rule.Results.Select(r => _cardDefs.GetValueOrDefault(r)?.Name ?? r));
+        return new CardData
+        {
+            Id = StagedCombineDisplayId,
+            Name = "待合成",
+            Type = CardType.Status,
+            Description = $"步骤 1/1\n材料：{matText}\n产出：{resText}\n材料已锁定，点击进行合成。",
+            IsDraggable = false,
+            Stack = 1,
+            MaxStack = 1
+        };
+    }
+
+    private string DescribeMaterialsShort(CombineRule rule)
+    {
+        if (rule.Ingredients.Count > 0)
+            return string.Join("、", rule.Ingredients.Select(id => _cardDefs.GetValueOrDefault(id)?.Name ?? id));
+        if (rule.MatchByTag)
+            return $"{rule.CardA} + {rule.CardB}（按标签）";
+        var na = _cardDefs.GetValueOrDefault(rule.CardA)?.Name ?? rule.CardA;
+        var nb = _cardDefs.GetValueOrDefault(rule.CardB)?.Name ?? rule.CardB;
+        return $"{na} + {nb}";
+    }
+
     private static CardData CloneCard(CardData src) => new()
     {
         Id = src.Id,
@@ -387,4 +559,18 @@ public partial class CardManager : Node
         Effects = src.Effects != null ? new List<string>(src.Effects) : new List<string>(),
         ExplorePool = src.ExplorePool != null ? new List<string>(src.ExplorePool) : new List<string>()
     };
+
+    public static Godot.Collections.Dictionary<string, Variant> PackCardRuntime(CardData c) =>
+        new()
+        {
+            { "Id", c.Id },
+            { "Stack", c.Stack },
+            { "Durability", c.Durability }
+        };
+
+    public static void ApplyCardRuntime(CardData card, Godot.Collections.Dictionary<string, Variant> d)
+    {
+        if (d.ContainsKey("Stack")) card.Stack = (int)d["Stack"];
+        if (d.ContainsKey("Durability")) card.Durability = (int)d["Durability"];
+    }
 }

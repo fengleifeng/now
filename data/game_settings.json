@@ -1,0 +1,33 @@
+// =============================================================================
+// game_settings.json — 全局游戏参数（默认 res://；若存在 user://game_settings.json 则覆盖）
+// -----------------------------------------------------------------------------
+// CardActionSoundsEnabled     卡牌 UI 音效开关
+// CardActionSoundVolumeDb     音效音量（分贝）
+// DefaultActionMinutes        各类操作默认耗时（游戏分钟）。1 日 = 24×60 = 1440 分钟。
+//   单张卡牌可在 cards.json 用 EatMinutes、CombineMinutes 等字段覆盖对应操作。
+//   子键含义：
+//     Eat / Drink / Use / Discard / View     进食、喝水、使用、丢弃、查看（卡牌未写分钟时用）
+//     CombineHand / MultiCombine             两卡合成 / 多卡合成，当产物卡均未配置 CombineMinutes 时
+//     CraftRecipe                             保留：配方界面逻辑已按产物耗时计算，可不填
+//     PickupScene / DropToScene               拾取到场景 / 从场景到手牌
+//     BuildProjectStep                        建造每步默认分钟（工程可写 BuildStepMinutes 覆盖）
+//     CombineFail                             合成失败消耗时间
+// =============================================================================
+{
+  "CardActionSoundsEnabled": true,
+  "CardActionSoundVolumeDb": -8,
+  "DefaultActionMinutes": {
+    "Eat": 10,
+    "Drink": 6,
+    "Use": 12,
+    "Discard": 4,
+    "View": 3,
+    "CombineHand": 15,
+    "MultiCombine": 15,
+    "CraftRecipe": 15,
+    "PickupScene": 10,
+    "DropToScene": 10,
+    "BuildProjectStep": 20,
+    "CombineFail": 5
+  }
+}

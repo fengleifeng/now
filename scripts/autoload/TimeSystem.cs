@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using CardSurvival.Game;
 
 namespace CardSurvival;
 
@@ -32,9 +33,18 @@ public partial class TimeSystem : Node
     public int CurrentDay { get; set; } = 1;
     public WeatherType CurrentWeather { get; private set; } = WeatherType.Sunny;
 
+    /// <summary>从存档恢复时间与天气。</summary>
+    public void ApplyLoadedTimeAndWeather(float dayProgress, int currentDay, string season, WeatherType weather)
+    {
+        DayProgress = dayProgress;
+        CurrentDay = currentDay;
+        CurrentSeason = season;
+        CurrentWeather = weather;
+    }
+
     // === 季节（新增） ===
     public string CurrentSeason { get; set; } = "spring";
-    private const int DaysPerSeason = 15;
+    private static int DaysPerSeason => SurviveTime.DaysPerSeason;
     private readonly string[] _seasons = { "spring", "summer", "autumn", "winter" };
 
     // === 温度基准（季节相关） ===
@@ -90,6 +100,7 @@ public partial class TimeSystem : Node
             var playerSystem = GetPlayerSystem();
             playerSystem.ConsumeHunger(10);
             playerSystem.ConsumeThirst(12);
+            playerSystem.TickNutritionDaily();
 
             // 温度影响
             ApplyTemperatureEffect();
