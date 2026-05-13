@@ -6,7 +6,8 @@ namespace CardSurvival.UI;
 
 public partial class EnvironmentArea : PanelContainer
 {
-    private VBoxContainer _items = null!;
+	private VBoxContainer _items = null!;
+	private Label _titleLabel = null!;
 
     public override void _Ready()
     {
@@ -27,9 +28,10 @@ public partial class EnvironmentArea : PanelContainer
         box.SizeFlagsVertical = SizeFlags.ExpandFill;
         margin.AddChild(box);
 
-        var title = new Label { Text = "环境" };
+        var title = new Label();
         GameTheme.StyleSectionLabel(title, GameTheme.TextMuted);
         box.AddChild(title);
+        _titleLabel = title;
 
         var scroll = new ScrollContainer
         {
@@ -45,7 +47,18 @@ public partial class EnvironmentArea : PanelContainer
         _items.AddThemeConstantOverride("separation", 6);
         _items.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         scroll.AddChild(_items);
+
+        ApplyTitle();
+        I18n.LocaleChanged += ApplyTitle;
     }
+
+    public override void _ExitTree()
+    {
+        I18n.LocaleChanged -= ApplyTitle;
+        base._ExitTree();
+    }
+
+    private void ApplyTitle() => _titleLabel.Text = I18n.T("ui.environment");
 
     public void Refresh(List<CardData> environmentCards)
     {
@@ -56,7 +69,7 @@ public partial class EnvironmentArea : PanelContainer
             _items.AddChild(CreateRow(group.First(), group.Count()));
     }
 
-    private static Control CreateRow(CardData card, int count)
+    private Control CreateRow(CardData card, int count)
     {
         var panel = new PanelContainer();
         panel.CustomMinimumSize = new Vector2(0, 42);
@@ -81,7 +94,7 @@ public partial class EnvironmentArea : PanelContainer
         row.AddChild(color);
 
         var text = new Label();
-        text.Text = count > 1 ? $"{card.Name} x{count}\n{GetTypeText(card.Type)}" : $"{card.Name}\n{GetTypeText(card.Type)}";
+        text.Text = count > 1 ? $"{card.Name} x{count}\n{I18n.CardTypeName(card.Type)}" : $"{card.Name}\n{I18n.CardTypeName(card.Type)}";
         text.AddThemeFontSizeOverride("font_size", 11);
         text.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
         text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
@@ -89,18 +102,6 @@ public partial class EnvironmentArea : PanelContainer
 
         return panel;
     }
-
-    private static string GetTypeText(CardType type) => type switch
-    {
-        CardType.Resource => "资源",
-        CardType.Creature => "生物",
-        CardType.Tool => "工具",
-        CardType.Building => "建筑",
-        CardType.Status => "状态",
-        CardType.Event => "事件",
-        CardType.Location => "地点",
-        _ => "未知"
-    };
 
     private static Color GetTypeColor(CardType type) => type switch
     {

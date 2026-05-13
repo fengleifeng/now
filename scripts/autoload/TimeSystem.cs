@@ -229,28 +229,26 @@ public partial class TimeSystem : Node
         return $"{hour:D2}:{minute:D2}";
     }
 
-    public string GetSeasonDisplay()
-    {
-        return CurrentSeason switch
+    /// <summary>用于 <c>I18n</c> 的词条键，如 <c>time.season.spring</c>。</summary>
+    public string GetSeasonMessageKey() =>
+        CurrentSeason switch
         {
-            "spring" => "春天",
-            "summer" => "夏天",
-            "autumn" => "秋天",
-            "winter" => "冬天",
-            _ => "未知"
+            "spring" => "time.season.spring",
+            "summer" => "time.season.summer",
+            "autumn" => "time.season.autumn",
+            "winter" => "time.season.winter",
+            _ => "time.season.unknown"
         };
-    }
 
-    public string GetWeatherDescription()
-    {
-        return CurrentWeather switch
+    /// <summary>用于 <c>I18n</c> 的词条键，如 <c>time.weather.sunny</c>。</summary>
+    public string GetWeatherMessageKey() =>
+        CurrentWeather switch
         {
-            WeatherType.Sunny => "晴天",
-            WeatherType.Rainy => "雨天",
-            WeatherType.Stormy => "暴雨",
-            WeatherType.Snowy => "雪天",
-            WeatherType.Foggy => "雾天",
-            _ => "未知"
+            WeatherType.Sunny => "time.weather.sunny",
+            WeatherType.Rainy => "time.weather.rainy",
+            WeatherType.Stormy => "time.weather.stormy",
+            WeatherType.Snowy => "time.weather.snowy",
+            WeatherType.Foggy => "time.weather.foggy",
+            _ => "time.weather.unknown"
         };
-    }
 }

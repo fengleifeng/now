@@ -13,6 +13,14 @@ public partial class StagedCombinePopup : Control
 
 	private CombineRule _rule = null!;
 	private CardManager _cards = null!;
+	private Label _title = null!;
+	private Label _step = null!;
+	private Label _mat = null!;
+	private Label _res = null!;
+	private Label _hint = null!;
+	private Button _synth = null!;
+	private Button _cancel = null!;
+	private Button _close = null!;
 
 	public void Setup(CombineRule rule, CardManager cards)
 	{
@@ -25,6 +33,28 @@ public partial class StagedCombinePopup : Control
 		SetAnchorsPreset(LayoutPreset.FullRect);
 		MouseFilter = MouseFilterEnum.Stop;
 		BuildUi();
+		I18n.LocaleChanged += ApplyTexts;
+		ApplyTexts();
+	}
+
+	public override void _ExitTree()
+	{
+		I18n.LocaleChanged -= ApplyTexts;
+		base._ExitTree();
+	}
+
+	private void ApplyTexts()
+	{
+		_title.Text = I18n.T("staged.popup_title");
+		_step.Text = I18n.T("staged.step");
+		_mat.Text = I18n.Tf("staged.materials_fmt", DescribeMaterials());
+		_res.Text = _rule.Results.Count == 0
+			? I18n.T("staged.output_eliminate")
+			: I18n.Tf("staged.output_fmt", DescribeResults());
+		_hint.Text = I18n.T("staged.hint_permanent");
+		_synth.Text = I18n.T("staged.synthesize");
+		_cancel.Text = I18n.T("staged.cancel_stage");
+		_close.Text = I18n.T("staged.close");
 	}
 
 	private void BuildUi()
@@ -48,63 +78,51 @@ public partial class StagedCombinePopup : Control
 		box.AddThemeConstantOverride("separation", 10);
 		margin.AddChild(box);
 
-		var title = new Label { Text = "暂存合成", HorizontalAlignment = HorizontalAlignment.Center };
-		title.AddThemeFontSizeOverride("font_size", 17);
-		title.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
-		box.AddChild(title);
+		_title = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+		_title.AddThemeFontSizeOverride("font_size", 17);
+		_title.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
+		box.AddChild(_title);
 
-		var step = new Label { Text = "步骤 1 / 1", HorizontalAlignment = HorizontalAlignment.Center };
-		step.AddThemeFontSizeOverride("font_size", 13);
-		step.AddThemeColorOverride("font_color", GameTheme.AccentHand);
-		box.AddChild(step);
+		_step = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+		_step.AddThemeFontSizeOverride("font_size", 13);
+		_step.AddThemeColorOverride("font_color", GameTheme.AccentHand);
+		box.AddChild(_step);
 
-		var mat = new Label
-		{
-			Text = $"材料：{DescribeMaterials()}",
-			AutowrapMode = TextServer.AutowrapMode.WordSmart
-		};
-		mat.AddThemeFontSizeOverride("font_size", 13);
-		mat.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
-		mat.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		box.AddChild(mat);
+		_mat = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+		_mat.AddThemeFontSizeOverride("font_size", 13);
+		_mat.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
+		_mat.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		box.AddChild(_mat);
 
-		var res = new Label
-		{
-			Text = _rule.Results.Count == 0 ? "产出：消除" : $"产出：{DescribeResults()}",
-			AutowrapMode = TextServer.AutowrapMode.WordSmart
-		};
-		res.AddThemeFontSizeOverride("font_size", 13);
-		res.AddThemeColorOverride("font_color", GameTheme.TextMuted);
-		res.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		box.AddChild(res);
+		_res = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+		_res.AddThemeFontSizeOverride("font_size", 13);
+		_res.AddThemeColorOverride("font_color", GameTheme.TextMuted);
+		_res.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		box.AddChild(_res);
 
-		var hint = new Label
-		{
-			Text = "带「永久」标签或不可拖动的建筑会进入下方「固定」栏，并替换栏内上一张卡（旧卡落到场景）。",
-			AutowrapMode = TextServer.AutowrapMode.WordSmart
-		};
-		hint.AddThemeFontSizeOverride("font_size", 11);
-		hint.AddThemeColorOverride("font_color", GameTheme.TextMuted);
-		hint.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		box.AddChild(hint);
+		_hint = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+		_hint.AddThemeFontSizeOverride("font_size", 11);
+		_hint.AddThemeColorOverride("font_color", GameTheme.TextMuted);
+		_hint.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		box.AddChild(_hint);
 
 		var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
 		row.AddThemeConstantOverride("separation", 10);
 		box.AddChild(row);
 
-		var synth = new Button { Text = "合成", CustomMinimumSize = new Vector2(100, 34) };
-		GameTheme.StyleSidebarButton(synth);
-		synth.Pressed += () => OnSynthesize?.Invoke();
-		row.AddChild(synth);
+		_synth = new Button { CustomMinimumSize = new Vector2(100, 34) };
+		GameTheme.StyleSidebarButton(_synth);
+		_synth.Pressed += () => OnSynthesize?.Invoke();
+		row.AddChild(_synth);
 
-		var cancel = new Button { Text = "取消暂存", CustomMinimumSize = new Vector2(100, 34) };
-		GameTheme.StyleSidebarButton(cancel);
-		cancel.Pressed += () => OnCancelStage?.Invoke();
-		row.AddChild(cancel);
+		_cancel = new Button { CustomMinimumSize = new Vector2(100, 34) };
+		GameTheme.StyleSidebarButton(_cancel);
+		_cancel.Pressed += () => OnCancelStage?.Invoke();
+		row.AddChild(_cancel);
 
-		var close = new Button { Text = "关闭", CustomMinimumSize = new Vector2(88, 30) };
-		close.Pressed += () => OnClose?.Invoke();
-		box.AddChild(close);
+		_close = new Button { CustomMinimumSize = new Vector2(88, 30) };
+		_close.Pressed += () => OnClose?.Invoke();
+		box.AddChild(_close);
 	}
 
 	private string DescribeMaterials()
@@ -112,7 +130,7 @@ public partial class StagedCombinePopup : Control
 		if (_rule.Ingredients.Count > 0)
 			return string.Join(" + ", _rule.Ingredients.Select(id => _cards.GetCard(id)?.Name ?? id));
 		if (_rule.MatchByTag)
-			return $"{_rule.CardA} + {_rule.CardB}（标签匹配）";
+			return I18n.Tf("staged.tag_pair_fmt", _rule.CardA, _rule.CardB);
 		var na = _cards.GetCard(_rule.CardA)?.Name ?? _rule.CardA;
 		var nb = _cards.GetCard(_rule.CardB)?.Name ?? _rule.CardB;
 		return $"{na} + {nb}";

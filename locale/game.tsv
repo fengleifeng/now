@@ -1,0 +1,196 @@
+key	zh_CN	en
+menu.game_title	卡牌生存：奇幻森林	Card Survival: Fabled Woods
+menu.start_default	开始游戏（默认角色）	Start (default survivor)
+menu.trait_mode	特质开局（可选）	Start with trait (optional)
+menu.continue	继续游戏	Continue
+menu.settings	游戏设置	Settings
+menu.quit	退出游戏	Quit
+menu.popup_title	菜单	Menu
+menu.sound_fx	卡牌操作音效	Card UI sounds
+menu.reveal_all_recipes	合成表：显示全部配方（忽略成就解锁）	Craft UI: show all recipes (ignore unlocks)
+menu.save	保存游戏	Save game
+menu.backup	备份存档（无上限）	Backup save (unlimited)
+menu.quit_to_main	返回主菜单	Main menu
+menu.close	关闭	Close
+menu.lang_label	界面语言	UI language
+time.season.spring	春天	Spring
+time.season.summer	夏天	Summer
+time.season.autumn	秋天	Autumn
+time.season.winter	冬天	Winter
+time.season.unknown	未知	Unknown
+time.weather.sunny	晴天	Sunny
+time.weather.rainy	雨天	Rainy
+time.weather.stormy	暴雨	Storm
+time.weather.snowy	雪天	Snowy
+time.weather.foggy	雾天	Foggy
+time.weather.unknown	未知	Unknown
+ui.survivor	幸存者	Survivor
+ui.craft	合成	Craft
+ui.rest	休息	Rest
+ui.sharpen	磨刀 -8精力	Sharpen (-8 energy)
+ui.night_ritual	夜仪	Night ritual
+ui.nutrition_header	营养 / 体成分	Nutrition / body
+ui.menu	菜单	Menu
+ui.stat.health	生命	Health
+ui.stat.hunger	饱食	Hunger
+ui.stat.thirst	口渴	Thirst
+ui.stat.energy	精力	Energy
+ui.stat.sanity	精神	Sanity
+ui.stat.protein	蛋白质	Protein
+ui.stat.vitamins	维生素	Vitamins
+ui.stat.carb	碳水	Carbs
+ui.stat.bodyfat	体脂倾向	Body fat tendency
+ui.temp_fmt	温度 {0}°C	Temp {0}°C
+ui.weather_fmt	天气 {0}	Weather {0}
+ui.time_fmt	时间 {0}	Time {0}
+ui.day_fmt	第 {0} 天	Day {0}
+ui.season_fmt	季节 {0}	Season {0}
+ui.location_fmt	位置 {0}	Location {0}
+ui.effects_ok	状态良好	All clear
+ui.hand	手牌	Hand
+ui.scene	场景	Scene
+ui.scene_items	物品	Items
+ui.explore_energy	探索 -{0}精力	Explore -{0} energy
+ui.go_to	前往 {0}	Go to {0}
+ui.anchored_strip	固定（不可移动项）	Anchored (immovable)
+ui.environment	环境	Environment
+ui.map_title	荒野地图	Wilderness map
+ui.map_current	（当前）	(current)
+ui.map_adjacent	（可达）	(adjacent)
+ui.map_far	（未连接）	(not connected)
+ui.map_go	前往	Go
+craft.popup_title	合成与建造	Craft & build
+craft.section_recipes	配方	Recipes
+craft.section_projects	工程	Projects
+craft.section_free	自由合成	Free combine
+craft.section_hand	手牌选择	Hand pick
+craft.pick_hint	选择 2-4 张手牌进行尝试	Pick 2–4 cards to try
+craft.combine	合成	Combine
+craft.clear	清空	Clear
+craft.close	关闭	Close
+craft.no_recipes_yet	还没有配方。可从手牌选择物品进行自由合成。	No recipes yet. Pick cards for free combine.
+craft.stage	暂存	Stage
+craft.craft_now	立即	Craft now
+craft.no_projects	暂无可建造工程。	No buildable projects.
+craft.build	建造	Build
+craft.empty_slot	空	(empty)
+craft.preview_need_more	选择 2-4 张手牌进行尝试	Pick 2–4 cards to try
+craft.preview_no_rule	预览：没有匹配配方	Preview: no matching recipe
+craft.preview_fmt	预览：{0} -> {1}	Preview: {0} -> {1}
+craft.material_fmt	材料:{0}	mat:{0}
+craft.project_line_fmt	{0}  材料:{1}  {2}/{3}	{0}  mat:{1}  {2}/{3}
+craft.eliminate	消除	Remove
+staged.popup_title	暂存合成	Staged combine
+staged.step	步骤 1 / 1	Step 1 / 1
+staged.materials_fmt	材料：{0}	Materials: {0}
+staged.output_eliminate	产出：消除	Output: remove
+staged.output_fmt	产出：{0}	Output: {0}
+staged.hint_permanent	带「永久」标签或不可拖动的建筑会进入下方「固定」栏，并替换栏内上一张卡（旧卡落到场景）。	Permanent or non-draggable buildings go to the anchored strip and replace the previous card (old card drops to scene).
+staged.synthesize	合成	Synthesize
+staged.cancel_stage	取消暂存	Cancel stage
+staged.close	关闭	Close
+staged.tag_pair_fmt	{0} + {1}（标签匹配）	{0} + {1} (tag match)
+cardtype.resource	资源	Resource
+cardtype.creature	生物	Creature
+cardtype.tool	工具	Tool
+cardtype.weapon	武器	Weapon
+cardtype.building	建筑	Building
+cardtype.status	状态	Status
+cardtype.event	事件	Event
+cardtype.location	地点	Location
+cardtype.container	容器	Container
+cardtype.seed	种子	Seed
+cardtype.unknown	未知	Unknown
+cardtype.generic	卡牌	Card
+card.hint.durability_fmt	耐久 {0}	Durability {0}
+card.hint.food_fmt	饱食 +{0}	Satiety +{0}
+card.hint.heal_fmt	治疗 +{0}	Heal +{0}
+card.hint.thirst_fmt	解渴 +{0}	Thirst +{0}
+cardaction.hunger_fmt	饱食 +{0}	Satiety +{0}
+cardaction.thirst_fmt	解渴 +{0}	Thirst +{0}
+cardaction.heal_fmt	治疗 +{0}	Heal +{0}
+cardaction.protein_fmt	蛋白质 {0}{1}	Protein {0}{1}
+cardaction.vitamin_fmt	维生素 {0}{1}	Vitamins {0}{1}
+cardaction.carb_fmt	碳水 {0}{1}	Carbs {0}{1}
+cardaction.bodyfat_fmt	体脂倾向 {0}{1}	Body fat {0}{1}
+cardaction.durability_fmt	耐久 {0}	Durability {0}
+cardaction.burn_fmt	燃烧 {0}	Burn {0}
+cardaction.toolpower_fmt	工具等级 {0}	Tool tier {0}
+cardaction.armor_fmt	护甲 {0}	Armor {0}
+trait.strong	强壮	Strong
+trait.agile	敏捷	Agile
+trait.wise	睿智	Wise
+trait.survivalist	生存专家	Survivalist
+trait.healer	医者	Healer
+trait.hunter	猎人	Hunter
+trait.carpenter	木匠	Carpenter
+trait.explorer	探险家	Explorer
+character.selected_fmt	已选特质：{0}（可直接开始）	Trait: {0} (you can start)
+character.none_hint	未选特质：将以默认营养与无特质加成开局	No trait: default nutrition, no trait bonuses
+character.page_title	选择你的特质	Choose your trait
+character.page_desc	选择一条可选特质开始生存（或跳过）。	Pick one optional trait to start (or skip).
+character.start	开始冒险	Start
+character.back	返回	Back
+shelter.wild	野外	Wilderness
+shelter.tent	帐篷	Tent
+shelter.house	木屋	Wood house
+shelter.stone_house	石屋	Stone house
+stagedcard.name	待合成	Pending combine
+stagedcard.desc_fmt	步骤 1/1\n材料：{0}\n产出：{1}\n材料已锁定，点击进行合成。	Step 1/1\nMaterials: {0}\nOutput: {1}\nLocked — tap to synthesize.
+log.newgame	[color=green]卡牌生存：万物皆卡。探索、拾取、合成，活下去。[/color]	[color=green]Cards are everything. Explore, gather, craft, survive.[/color]
+log.loadok	[color=green]存档已加载。[/color]	[color=green]Save loaded.[/color]
+log.explore_no_energy	[color=red]精力不足，无法探索。[/color]	[color=red]Not enough energy to explore.[/color]
+log.explore_empty_fmt	探索了 {0}，一无所获。	Explored {0}, found nothing.
+log.explore_found_fmt	探索了 {0}，发现 {1}。	Explored {0}, found {1}.
+log.sunny_extra_none	[color=yellow]晴光下你多搜寻了一圈，没有更多收获。[/color]	[color=yellow]You searched longer in the sun, nothing more.[/color]
+log.sunny_extra_fmt	[color=yellow]晴天馈赠：额外发现 {0}。[/color]	[color=yellow]Sun bonus: also found {0}.[/color]
+log.rest_full	[color=gray]你精神饱满，不需要休息。[/color]	[color=gray]You are rested.[/color]
+log.rest_hungry	[color=red]太饿或太渴，无法安心休息。[/color]	[color=red]Too hungry or thirsty to rest.[/color]
+log.rest_fmt	[color=cyan]在{0}休息，精力 +{1}。[/color]	[color=cyan]Rested at {0}, energy +{1}.[/color]
+log.sharpen_no_energy	[color=red]精力不足，无法磨刀。[/color]	[color=red]Not enough energy to sharpen.[/color]
+log.sharpen_no_tool	[color=gray]没有可磨利的工具或武器。[/color]	[color=gray]No tool or weapon to sharpen.[/color]
+log.sharpen_ok	[color=green]磨刀：工具耐久 +1，精力 -8。[/color]	[color=green]Sharpened: durability +1, energy -8.[/color]
+log.ritual_not_night	[color=gray]夜仪只在夜晚有效。[/color]	[color=gray]Night ritual works only at night.[/color]
+log.ritual_need_cards	[color=red]需要手牌中有火堆与草药。[/color]	[color=red]Need campfire and herb in hand.[/color]
+log.ritual_no_need	[color=gray]你尚不需要这场仪式。[/color]	[color=gray]You do not need the ritual yet.[/color]
+log.ritual_cured	[color=magenta]夜仪：青烟升起，病痛稍退。[/color]	[color=magenta]Ritual: smoke rises, illness eases.[/color]
+log.ritual_calm	[color=magenta]夜仪：心绪稍安。[/color]	[color=magenta]Ritual: calmer mind.[/color]
+log.ritual_sanity	[color=magenta]夜仪：草药在火边安抚了你的神经。[/color]	[color=magenta]Ritual: herbs by the fire steady your nerves.[/color]
+log.move_not_adjacent	[color=red]只能前往相邻区域。[/color]	[color=red]You can only move to adjacent areas.[/color]
+log.move_no_energy	[color=red]精力不足，无法移动。[/color]	[color=red]Not enough energy to travel.[/color]
+log.move_fmt	移动到 {0}。	Moved to {0}.
+log.stage_locked	[color=red]尚未通过成就解锁该配方，无法暂存。[/color]	[color=red]Recipe not unlocked; cannot stage.[/color]
+log.stage_fail	[color=red]无法暂存（材料不足或已有暂存）。[/color]	[color=red]Cannot stage (materials or slot).[/color]
+log.stage_ok	[color=cyan]已暂存配方材料，点击「待合成」卡进行合成。[/color]	[color=cyan]Materials staged — tap the “pending combine” card.[/color]
+log.combine_success_fmt	[color=green]合成成功：{0}。[/color]	[color=green]Crafted: {0}.[/color]
+log.recipe_locked	[color=red]尚未解锁该配方。[/color]	[color=red]Recipe not unlocked.[/color]
+log.not_enough_mats	[color=red]材料不足。[/color]	[color=red]Not enough materials.[/color]
+log.build_no_mat	[color=red]缺少建造材料。[/color]	[color=red]Missing build material.[/color]
+log.build_progress_fmt	建造 {0}: {1}/{2}	Building {0}: {1}/{2}
+log.build_done_fmt	[color=green]{0} 完成。[/color]	[color=green]{0} complete.[/color]
+log.pair_vanish_fmt	[color=green]{0}+{1} 被消除。[/color]	[color=green]{0}+{1} removed.[/color]
+log.pair_success_fmt	[color=green]合成成功：{0}+{1}。[/color]	[color=green]Crafted: {0}+{1}.[/color]
+log.multi_vanish_fmt	[color=green]{0} 被消除。[/color]	[color=green]{0} removed.[/color]
+log.multi_success_fmt	[color=green]自由合成成功：{0}。[/color]	[color=green]Free combine: {0}.[/color]
+log.scene_no_energy	[color=orange]精力不足。[/color]	[color=orange]Not enough energy.[/color]
+log.scene_success_fmt	[color=green]获得了 {0}。[/color]	[color=green]Got {0}.[/color]
+log.scene_fail_default	[color=yellow]什么也没有捞到。[/color]	[color=yellow]Nothing this time.[/color]
+log.drop_fmt	放下了 {0}。	Dropped {0}.
+log.pickup_fmt	拾取了 {0}。	Picked up {0}.
+log.death	[color=red]你倒下了。[/color]	[color=red]You have fallen.[/color]
+log.hand_overflow_fmt	[color=orange]手牌超过上限，丢弃 {0}。[/color]	[color=orange]Hand full, discarded {0}.[/color]
+log.lucky_trace	[color=yellow]发现了一些痕迹，但没有可用物资。[/color]	[color=yellow]Traces, but nothing useful.[/color]
+log.lucky_find_fmt	[color=yellow]幸运发现：{0}。[/color]	[color=yellow]Lucky find: {0}.[/color]
+log.snake	[color=orange]被毒蛇咬伤，生命 -10。[/color]	[color=orange]Snake bite, health -10.[/color]
+log.wolf_wall	[color=green]围墙挡住了野兽袭击。[/color]	[color=green]The wall stopped the beast.[/color]
+log.wolf_repelled	[color=green]你赶走了野兽。[/color]	[color=green]You drove the beast away.[/color]
+log.wolf_hit	[color=orange]野兽袭击，生命 -15，可能受伤。[/color]	[color=orange]Beast attack, health -15, may be injured.[/color]
+log.storm_safe	[color=cyan]暴风雨来了，但庇护所保护了你。[/color]	[color=cyan]Storm — shelter protected you.[/color]
+log.storm_cold	[color=cyan]暴风雨来袭，温度 -5，可能感冒。[/color]	[color=cyan]Storm — temp -5, risk of cold.[/color]
+ui.combine_fail_fmt	[color=red]合成失败：{0}+{1}[/color]	[color=red]Combine failed: {0}+{1}[/color]
+ui.combine_impossible	[color=red]这些物品无法合成[/color]	[color=red]These items cannot combine[/color]
+ui.save_ok	[color=green]游戏已保存。[/color]	[color=green]Game saved.[/color]
+ui.backup_ok	[color=green]已写入用户备份目录（不占用每日 10 份配额）。[/color]	[color=green]Backup written to user folder (no daily cap).[/color]
+ui.map_suffix_current	（当前）	(current)
+ui.map_suffix_adjacent	（可达）	(adjacent)
+ui.map_suffix_far	（未连接）	(not connected)

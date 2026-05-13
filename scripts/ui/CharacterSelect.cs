@@ -22,6 +22,8 @@ public partial class CharacterSelect : Control
 	private Button _startButton = null!;
 	private Button _backButton = null!;
 	private Label _selectedLabel = null!;
+	private Label _titleLabel = null!;
+	private Label _descriptionLabel = null!;
 	private readonly List<Button> _traitButtons = new();
 	private CharacterTrait? _selectedTrait;
 
@@ -39,6 +41,8 @@ public partial class CharacterSelect : Control
 
 	public override void _Ready()
 	{
+		_titleLabel = GetNode<Label>("CenterRoot/MainContainer/TitleLabel");
+		_descriptionLabel = GetNode<Label>("CenterRoot/MainContainer/DescriptionLabel");
 		_startButton = GetNode<Button>("CenterRoot/MainContainer/StartButton");
 		_backButton = GetNode<Button>("CenterRoot/MainContainer/BackButton");
 		_selectedLabel = GetNode<Label>("CenterRoot/MainContainer/SelectedLabel");
@@ -57,6 +61,23 @@ public partial class CharacterSelect : Control
 		_startButton.Pressed += OnStartPressed;
 		_backButton.Pressed += OnBackPressed;
 
+		ApplyPageTexts();
+		I18n.LocaleChanged += ApplyPageTexts;
+		UpdateSelectedDisplay();
+	}
+
+	public override void _ExitTree()
+	{
+		I18n.LocaleChanged -= ApplyPageTexts;
+		base._ExitTree();
+	}
+
+	private void ApplyPageTexts()
+	{
+		_titleLabel.Text = I18n.T("character.page_title");
+		_descriptionLabel.Text = I18n.T("character.page_desc");
+		_startButton.Text = I18n.T("character.start");
+		_backButton.Text = I18n.T("character.back");
 		UpdateSelectedDisplay();
 	}
 
@@ -66,19 +87,17 @@ public partial class CharacterSelect : Control
 
 		if (_selectedTrait == trait)
 		{
-			// Deselect
 			_selectedTrait = null;
 			button.Modulate = Godot.Colors.White;
 		}
 		else
 		{
-			// Deselect previous if any
 			if (_selectedTrait.HasValue)
 			{
 				var prevButton = _traitButtons.First(b => _traitMap[b.Name] == _selectedTrait.Value);
 				prevButton.Modulate = Godot.Colors.White;
 			}
-			// Select new
+
 			_selectedTrait = trait;
 			button.Modulate = new Godot.Color(0.6f, 0.8f, 0.6f);
 		}
@@ -89,10 +108,13 @@ public partial class CharacterSelect : Control
 	private void UpdateSelectedDisplay()
 	{
 		_selectedLabel.Text = _selectedTrait.HasValue
-			? $"已选特质：{_selectedTrait.Value}（可直接开始）"
-			: "未选特质：将以默认营养与无特质加成开局";
+			? I18n.Tf("character.selected_fmt", TraitName(_selectedTrait.Value))
+			: I18n.T("character.none_hint");
 		_startButton.Disabled = false;
 	}
+
+	private static string TraitName(CharacterTrait t) =>
+		I18n.T($"trait.{t.ToString().ToLowerInvariant()}");
 
 	private void OnStartPressed()
 	{

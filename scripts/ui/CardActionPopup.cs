@@ -212,32 +212,23 @@ public partial class CardActionPopup : Control
 	private string GetAttrText()
 	{
 		var parts = new System.Collections.Generic.List<string>();
-		if (_card.FoodValue > 0) parts.Add($"饱食 +{_card.FoodValue}");
-		if (_card.ThirstValue > 0) parts.Add($"解渴 +{_card.ThirstValue}");
-		if (_card.HealValue > 0) parts.Add($"治疗 +{_card.HealValue}");
-		if (_card.ProteinValue != 0) parts.Add($"蛋白质 {(_card.ProteinValue > 0 ? "+" : "")}{_card.ProteinValue}");
-		if (_card.VitaminValue != 0) parts.Add($"维生素 {(_card.VitaminValue > 0 ? "+" : "")}{_card.VitaminValue}");
-		if (_card.CarbValue != 0) parts.Add($"碳水 {(_card.CarbValue > 0 ? "+" : "")}{_card.CarbValue}");
-		if (_card.BodyFatDelta != 0) parts.Add($"体脂倾向 {(_card.BodyFatDelta > 0 ? "+" : "")}{_card.BodyFatDelta}");
-		if (_card.Durability > 0) parts.Add($"耐久 {_card.Durability}");
-		if (_card.BurnValue > 0) parts.Add($"燃烧 {_card.BurnValue}");
-		if (_card.ToolPower > 0) parts.Add($"工具等级 {_card.ToolPower}");
-		if (_card.ArmorValue > 0) parts.Add($"护甲 {_card.ArmorValue}");
+		if (_card.FoodValue > 0) parts.Add(I18n.Tf("cardaction.hunger_fmt", _card.FoodValue));
+		if (_card.ThirstValue > 0) parts.Add(I18n.Tf("cardaction.thirst_fmt", _card.ThirstValue));
+		if (_card.HealValue > 0) parts.Add(I18n.Tf("cardaction.heal_fmt", _card.HealValue));
+		if (_card.ProteinValue != 0)
+			parts.Add(I18n.Tf("cardaction.protein_fmt", _card.ProteinValue > 0 ? "+" : "", _card.ProteinValue));
+		if (_card.VitaminValue != 0)
+			parts.Add(I18n.Tf("cardaction.vitamin_fmt", _card.VitaminValue > 0 ? "+" : "", _card.VitaminValue));
+		if (_card.CarbValue != 0)
+			parts.Add(I18n.Tf("cardaction.carb_fmt", _card.CarbValue > 0 ? "+" : "", _card.CarbValue));
+		if (_card.BodyFatDelta != 0)
+			parts.Add(I18n.Tf("cardaction.bodyfat_fmt", _card.BodyFatDelta > 0 ? "+" : "", _card.BodyFatDelta));
+		if (_card.Durability > 0) parts.Add(I18n.Tf("cardaction.durability_fmt", _card.Durability));
+		if (_card.BurnValue > 0) parts.Add(I18n.Tf("cardaction.burn_fmt", _card.BurnValue));
+		if (_card.ToolPower > 0) parts.Add(I18n.Tf("cardaction.toolpower_fmt", _card.ToolPower));
+		if (_card.ArmorValue > 0) parts.Add(I18n.Tf("cardaction.armor_fmt", _card.ArmorValue));
 		return string.Join("  ", parts);
 	}
 
-	private static string GetTypeText(CardType type) => type switch
-	{
-		CardType.Resource => "资源",
-		CardType.Creature => "生物",
-		CardType.Tool => "工具",
-		CardType.Weapon => "武器",
-		CardType.Building => "建筑",
-		CardType.Status => "状态",
-		CardType.Event => "事件",
-		CardType.Location => "地点",
-		CardType.Container => "容器",
-		CardType.Seed => "种子",
-		_ => "未知"
-	};
+	private static string GetTypeText(CardType type) => I18n.CardTypeName(type);
 }

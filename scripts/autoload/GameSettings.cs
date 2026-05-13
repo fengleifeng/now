@@ -11,7 +11,7 @@ using Godot;
 /// </summary>
 public partial class GameSettings : Node
 {
-	private const string ResSettingsPath = "res://data/game_settings.json";
+	private const string ResSettingsPath = ContentPaths.GameSettingsDefault;
 	private const string UserSettingsPath = "user://game_settings.json";
 
 	private static readonly JsonSerializerOptions JsonOptions = new()
@@ -47,6 +47,31 @@ public partial class GameSettings : Node
 		}
 	}
 
+	/// <summary>为 true 时合成界面与手牌合成均视为已解锁全部配方（仍受材料限制）。</summary>
+	public bool RevealAllRecipesInCraftUi
+	{
+		get => _data.RevealAllRecipesInCraftUi;
+		set
+		{
+			_data.RevealAllRecipesInCraftUi = value;
+			Save();
+		}
+	}
+
+	/// <summary>界面语言：<c>zh_CN</c> 或 <c>en</c>；写入 user 设置并通知 <see cref="I18n"/>。</summary>
+	public string UiLocale
+	{
+		get => NormalizeUiLocale(_data.UiLocale);
+		set
+		{
+			var n = NormalizeUiLocale(value);
+			if (_data.UiLocale == n) return;
+			_data.UiLocale = n;
+			Save();
+			I18n.Instance?.ApplyLocale(n);
+		}
+	}
+
 	public override void _Ready()
 	{
 		Reload();
@@ -79,6 +104,7 @@ public partial class GameSettings : Node
 		}
 
 		RebuildDefaultActionMinutes();
+		I18n.Instance?.ApplyLocale(NormalizeUiLocale(_data.UiLocale));
 	}
 
 	/// <summary>某类操作在卡牌未单独配置时的默认耗时（游戏分钟）。</summary>
@@ -131,6 +157,7 @@ public partial class GameSettings : Node
 		["CraftRecipe"] = 15f,
 		["PickupScene"] = 10f,
 		["DropToScene"] = 10f,
+		["SceneHandDance"] = 12f,
 		["BuildProjectStep"] = 20f,
 		["CombineFail"] = 5f
 	};
@@ -177,6 +204,14 @@ public partial class GameSettings : Node
 		}
 	}
 
+	private static string NormalizeUiLocale(string? raw)
+	{
+		if (string.IsNullOrWhiteSpace(raw)) return I18n.DefaultLocale;
+		var t = raw.Trim();
+		if (t == I18n.EnglishLocale) return I18n.EnglishLocale;
+		return I18n.DefaultLocale;
+	}
+
 	private void BuildStreams()
 	{
 		_streams[CardUiSoundKind.Tap] = CreateTone(620, 0.035, 2600);
@@ -219,6 +254,9 @@ public sealed class GameSettingsData
 {
 	public bool CardActionSoundsEnabled { get; set; } = true;
 	public float CardActionSoundVolumeDb { get; set; } = -8f;
+	public bool RevealAllRecipesInCraftUi { get; set; }
+	/// <summary><c>zh_CN</c> 或 <c>en</c>。</summary>
+	public string? UiLocale { get; set; }
 	/// <summary>各类操作默认耗时（游戏分钟）；1 日 = 1440 分钟。单张卡可用 EatMinutes 等字段覆盖。</summary>
 	public Dictionary<string, float>? DefaultActionMinutes { get; set; }
 }

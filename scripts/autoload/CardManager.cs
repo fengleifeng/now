@@ -1,5 +1,6 @@
 using Godot;
 using CardSurvival.Data;
+using CardSurvival.Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace CardSurvival;
 public partial class CardManager : Node
 {
     [Signal] public delegate void OnCardAddedEventHandler(string cardId);
+    [Signal] public delegate void OnHandStackGainedEventHandler(string cardId, int amount);
     [Signal] public delegate void OnCardRemovedEventHandler(string cardId);
     [Signal] public delegate void OnCardConsumedEventHandler(string cardId, string reason);
     [Signal] public delegate void OnSceneCardsChangedEventHandler();
@@ -34,12 +36,12 @@ public partial class CardManager : Node
 
     public override void _Ready()
     {
-        var cardsPath = ProjectSettings.GlobalizePath("res://data/cards.json");
+        var cardsPath = ProjectSettings.GlobalizePath(ContentPaths.Cards);
         var cards = DataLoader.LoadCards(cardsPath);
         foreach (var c in cards)
             _cardDefs[c.Id] = c;
 
-        var projectsPath = ProjectSettings.GlobalizePath("res://data/projects.json");
+        var projectsPath = ProjectSettings.GlobalizePath(ContentPaths.Projects);
         var projects = DataLoader.LoadProjects(projectsPath);
         foreach (var p in projects)
             _projectDefs[p.Id] = p;
@@ -228,8 +230,10 @@ public partial class CardManager : Node
 
     public void AddCardToHand(CardData card)
     {
-        AddToHandWithLimit(card);
+        var gained = AddToHandWithLimit(card);
         EmitSignal(SignalName.OnCardAdded, card.Id);
+        if (gained > 0 && !IsStagedCombineDisplay(card) && !card.IsStagedIngredient)
+            EmitSignal(SignalName.OnHandStackGained, card.Id, gained);
     }
 
     /// <summary>
@@ -353,9 +357,11 @@ public partial class CardManager : Node
     public void MoveSceneCardToHand(CardData card)
     {
         GetMapSystem().RemoveCardFromCurrentScene(card);
-        AddToHandWithLimit(card);
+        var gained = AddToHandWithLimit(card);
         EmitSignal(SignalName.OnSceneCardsChanged);
         EmitSignal(SignalName.OnCardAdded, card.Id);
+        if (gained > 0 && !card.IsStagedIngredient)
+            EmitSignal(SignalName.OnHandStackGained, card.Id, gained);
     }
 
     public void MoveHandCardToScene(CardData card)
@@ -477,50 +483,54 @@ public partial class CardManager : Node
     /// 将卡加入手牌，同ID自动堆叠。
     /// 超过手牌槽位上限时丢弃最早的非堆叠槽位。
     /// </summary>
-    private void AddToHandWithLimit(CardData card)
+    /// <returns>实际进入手牌库存的该卡堆叠增量之和（不含被立刻挤掉的牌）。</returns>
+    private int AddToHandWithLimit(CardData card)
     {
-        // 尝试堆叠到现有卡上
-        var existing = _hand.FirstOrDefault(c => c.Id == card.Id && c.Stack < c.MaxStack && !c.IsStagedIngredient);
-        if (existing != null)
+        if (card.Stack <= 0)
+            return 0;
+
+        var gained = 0;
+        while (card.Stack > 0)
         {
-            var space = existing.MaxStack - existing.Stack;
-            var toAdd = card.Stack;
-            if (toAdd <= space)
+            var existing = _hand.FirstOrDefault(c =>
+                c.Id == card.Id && c.Stack < c.MaxStack && !c.IsStagedIngredient);
+            if (existing != null)
             {
-                existing.Stack += toAdd;
-                return;
+                var space = existing.MaxStack - existing.Stack;
+                var add = Math.Min(space, card.Stack);
+                existing.Stack += add;
+                card.Stack -= add;
+                gained += add;
+                continue;
             }
-            else
-            {
-                existing.Stack = existing.MaxStack;
-                card.Stack = toAdd - space; // 剩余部分，继续添加
-            }
+
+            _hand.Add(card);
+            gained += card.Stack;
+            break;
         }
 
-        // 没有可堆叠的槽位 → 放入新槽位
-        _hand.Add(card);
-
-        // 超限丢弃
         while (_hand.Count > MaxHandSlots)
         {
             var discarded = _hand[0];
             _hand.RemoveAt(0);
             EmitSignal(SignalName.OnCardConsumed, discarded.Id, "hand_limit");
         }
+
+        return gained;
     }
 
     private CardData BuildStagedDisplayCard(CombineRule rule)
     {
         var matText = DescribeMaterialsShort(rule);
         var resText = rule.Results.Count == 0
-            ? "消除"
+            ? I18n.T("craft.eliminate")
             : string.Join("、", rule.Results.Select(r => _cardDefs.GetValueOrDefault(r)?.Name ?? r));
         return new CardData
         {
             Id = StagedCombineDisplayId,
-            Name = "待合成",
+            Name = I18n.T("stagedcard.name"),
             Type = CardType.Status,
-            Description = $"步骤 1/1\n材料：{matText}\n产出：{resText}\n材料已锁定，点击进行合成。",
+            Description = I18n.Tf("stagedcard.desc_fmt", matText, resText),
             IsDraggable = false,
             Stack = 1,
             MaxStack = 1
@@ -532,7 +542,7 @@ public partial class CardManager : Node
         if (rule.Ingredients.Count > 0)
             return string.Join("、", rule.Ingredients.Select(id => _cardDefs.GetValueOrDefault(id)?.Name ?? id));
         if (rule.MatchByTag)
-            return $"{rule.CardA} + {rule.CardB}（按标签）";
+            return I18n.Tf("staged.tag_pair_fmt", rule.CardA, rule.CardB);
         var na = _cardDefs.GetValueOrDefault(rule.CardA)?.Name ?? rule.CardA;
         var nb = _cardDefs.GetValueOrDefault(rule.CardB)?.Name ?? rule.CardB;
         return $"{na} + {nb}";

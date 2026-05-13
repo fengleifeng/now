@@ -1,4 +1,4 @@
-; Engine configuration file.
+    ; Engine configuration file.
 ; It's best edited using the editor UI and not directly,
 ; since the parameters that go here are not all obvious.
 ;
@@ -15,6 +15,10 @@ run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "C#", "Mobile")
 config/icon="res://icon.svg"
 
+[internationalization]
+
+locale/fallback="zh_CN"
+
 [display]
 
 window/size/viewport_width=1280
@@ -24,6 +28,7 @@ window/stretch/mode="canvas_items"
 [autoload]
 
 GameSettings="*res://scripts/autoload/GameSettings.cs"
+I18n="*res://scripts/autoload/I18n.cs"
 MapSystem="*res://scripts/autoload/MapSystem.cs"
 PlayerSystem="*res://scripts/autoload/PlayerSystem.cs"
 CardManager="*res://scripts/autoload/CardManager.cs"
@@ -31,6 +36,7 @@ CombineSystem="*res://scripts/autoload/CombineSystem.cs"
 TimeSystem="*res://scripts/autoload/TimeSystem.cs"
 EffectSystem="*res://scripts/autoload/EffectSystem.cs"
 SaveSystem="*res://scripts/autoload/SaveSystem.cs"
+AchievementSystem="*res://scripts/autoload/AchievementSystem.cs"
 
 [dotnet]
 

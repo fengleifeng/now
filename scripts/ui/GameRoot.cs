@@ -13,7 +13,6 @@ namespace CardSurvival;
 public partial class GameRoot : Control
 {
 	private StatusPanel _statusPanel = null!;
-	private LocationInfoBar _locationInfoBar = null!;
 	private SceneArea _sceneArea = null!;
 	private EnvironmentArea _environmentArea = null!;
 	private HandArea _handArea = null!;
@@ -33,6 +32,7 @@ public partial class GameRoot : Control
 	private Control? _popup;
 	private bool _needsRefresh;
 	private bool _isRefreshing;
+	private Label _anchoredTitleLabel = null!;
 
 	public override void _Ready()
 	{
@@ -57,12 +57,26 @@ public partial class GameRoot : Control
 			Settings = _settings,
 			Log = AppendLog,
 			RequestUiRefresh = RequestRefresh,
-			RefreshCraftIfOpen = RefreshCraftPopupIfOpen
+			RefreshCraftIfOpen = RefreshCraftPopupIfOpen,
+			OnAchievementProbe = () => GetNode<AchievementSystem>("/root/AchievementSystem").OnStateMayHaveChanged()
 		});
 
 		BuildUI();
 		ConnectSignals();
+		I18n.LocaleChanged += OnGameLocaleChanged;
 		StartOrLoadGame();
+	}
+
+	public override void _ExitTree()
+	{
+		I18n.LocaleChanged -= OnGameLocaleChanged;
+		base._ExitTree();
+	}
+
+	private void OnGameLocaleChanged()
+	{
+		_anchoredTitleLabel.Text = I18n.T("ui.anchored_strip");
+		RequestRefresh();
 	}
 
 	private void AppendLog(string message)
@@ -103,13 +117,8 @@ public partial class GameRoot : Control
 		center.AddThemeConstantOverride("separation", 0);
 		centerShell.AddChild(center);
 
-		_locationInfoBar = new LocationInfoBar();
-		_locationInfoBar.CustomMinimumSize = new Vector2(0, 118);
-		center.AddChild(_locationInfoBar);
-		center.AddChild(new HSeparator { SelfModulate = GameTheme.Separator });
-
 		_sceneArea = new SceneArea();
-		_sceneArea.CustomMinimumSize = new Vector2(0, 220);
+		_sceneArea.CustomMinimumSize = new Vector2(0, 288);
 		_sceneArea.SizeFlagsVertical = SizeFlags.ExpandFill;
 		center.AddChild(_sceneArea);
 		center.AddChild(new HSeparator { SelfModulate = GameTheme.Separator });
@@ -136,9 +145,9 @@ public partial class GameRoot : Control
 		anchoredBox.SizeFlagsVertical = SizeFlags.ExpandFill;
 		anchoredMargin.AddChild(anchoredBox);
 
-		var anchoredTitle = new Label { Text = "固定（不可移动项）" };
-		GameTheme.StyleSectionLabel(anchoredTitle, GameTheme.TextMuted);
-		anchoredBox.AddChild(anchoredTitle);
+		_anchoredTitleLabel = new Label { Text = I18n.T("ui.anchored_strip") };
+		GameTheme.StyleSectionLabel(_anchoredTitleLabel, GameTheme.TextMuted);
+		anchoredBox.AddChild(_anchoredTitleLabel);
 
 		var anchoredScroll = new ScrollContainer
 		{
@@ -203,8 +212,8 @@ public partial class GameRoot : Control
 		_statusPanel.OnSharpenClicked += () => _game.Sharpen();
 		_statusPanel.OnNightRitualClicked += () => _game.NightRitual();
 		_statusPanel.OnMenuClicked += OpenMenuPopup;
-		_locationInfoBar.OnExploreClicked += () => _game.Explore();
-		_locationInfoBar.OnMoveToLocation += id => _game.MoveToLocation(id);
+		_sceneArea.OnLocationExploreClicked += () => _game.Explore();
+		_sceneArea.OnLocationMoveClicked += id => _game.MoveToLocation(id);
 		_handArea.OnHandCardClicked += OnHandCardClicked;
 		_handArea.OnHandCardDragEnded += OnHandCardDragEnded;
 		_sceneArea.OnSceneCardClicked += OnSceneCardClicked;
@@ -229,7 +238,7 @@ public partial class GameRoot : Control
 		_combine.Connect(CombineSystem.SignalName.OnCombineFail,
 			Callable.From((string a, string b) =>
 			{
-				AppendLog($"[color=red]合成失败：{a}+{b}[/color]");
+				AppendLog(I18n.Tf("ui.combine_fail_fmt", a, b));
 				_game.AdvanceCombineFailTime();
 				_settings.PlayCardUiSound(CardUiSoundKind.CombineFail);
 			}));
@@ -242,7 +251,7 @@ public partial class GameRoot : Control
 		_combine.Connect(CombineSystem.SignalName.OnMultiCombineFail,
 			Callable.From(() =>
 			{
-				AppendLog("[color=red]这些物品无法合成[/color]");
+				AppendLog(I18n.T("ui.combine_impossible"));
 				_game.AdvanceCombineFailTime();
 				_settings.PlayCardUiSound(CardUiSoundKind.CombineFail);
 			}));
@@ -260,6 +269,13 @@ public partial class GameRoot : Control
 
 	public override void _Process(double delta)
 	{
+		var ach = GetNodeOrNull<AchievementSystem>("/root/AchievementSystem");
+		if (ach != null)
+		{
+			while (ach.TryDequeueLog(out var line))
+				AppendLog(line);
+		}
+
 		if (_needsRefresh)
 		{
 			_needsRefresh = false;
@@ -286,11 +302,12 @@ public partial class GameRoot : Control
 		{
 			var loc = _map.GetCurrentLocation();
 			_handArea.Refresh(_cards.GetHandForUi());
-			_sceneArea.Refresh(_cards.GetSceneCards(), loc == null ? null : _cards.GetCard(loc.Id));
+			_sceneArea.Refresh(
+				_cards.GetSceneCards(),
+				loc == null ? null : _cards.GetCard(loc.Id),
+				loc);
 			_environmentArea.Refresh(_map.GetCurrentEnvironmentCards());
 			RefreshAnchoredStrip();
-			if (loc != null)
-				_locationInfoBar.Refresh(loc);
 		}
 		finally
 		{
@@ -414,6 +431,19 @@ public partial class GameRoot : Control
 			return;
 		}
 
+		var overSceneZone = dropped.IsOverArea(_sceneArea);
+		if (overSceneZone && _cards.GetHandForUi().Contains(data))
+		{
+			if (_game.TrySceneHandDance(data, out var dancePulse))
+			{
+				if (dancePulse)
+					_sceneArea.PlayDancePulse();
+				_settings.PlayCardUiSound(dancePulse ? CardUiSoundKind.CombineSuccess : CardUiSoundKind.Tap);
+				RequestRefresh();
+				return;
+			}
+		}
+
 		if (dropped.IsOverArea(_sceneArea) && _cards.GetHandForUi().Contains(data))
 		{
 			_game.OnHandCardToScene(data);
@@ -491,12 +521,12 @@ public partial class GameRoot : Control
 		popup.OnSave += () =>
 		{
 			_game.SaveGame();
-			AppendLog("[color=green]游戏已保存。[/color]");
+			AppendLog(I18n.T("ui.save_ok"));
 		};
 		popup.OnBackup += () =>
 		{
 			_game.SaveUserBackup();
-			AppendLog("[color=green]已写入用户备份目录（不占用每日 10 份配额）。[/color]");
+			AppendLog(I18n.T("ui.backup_ok"));
 		};
 		popup.OnQuit += () => GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
 		popup.OnClose += ClosePopup;

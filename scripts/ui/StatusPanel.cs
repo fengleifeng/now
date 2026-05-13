@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using CardSurvival.Data;
 using CardSurvival;
@@ -37,13 +38,19 @@ public partial class StatusPanel : PanelContainer
 	private Label _seasonLabel = null!;
 	private Label _locationLabel = null!;
 	private Label _effectLabel = null!;
+	private Label _headerLabel = null!;
+	private Label _nutHdrLabel = null!;
 	private PlayerSystem _player = null!;
 	private TimeSystem _time = null!;
 	private MapSystem _map = null!;
 	private CardManager _cards = null!;
 	private EffectSystem _effects = null!;
+	private Button _craftBtn = null!;
+	private Button _restBtn = null!;
+	private Button _menuBtn = null!;
 	private Button _sharpenBtn = null!;
 	private Button _ritualBtn = null!;
+	private readonly List<(Label Label, string Key)> _statTitleI18n = new();
 
 	public override void _Ready()
 	{
@@ -72,33 +79,35 @@ public partial class StatusPanel : PanelContainer
 		content.SizeFlagsVertical = SizeFlags.ExpandFill;
 		margin.AddChild(content);
 
-		var header = new Label { Text = "幸存者" };
-		header.AddThemeFontSizeOverride("font_size", 15);
-		header.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
-		content.AddChild(header);
+		_headerLabel = new Label();
+		_headerLabel.AddThemeFontSizeOverride("font_size", 15);
+		_headerLabel.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
+		content.AddChild(_headerLabel);
 
-		content.AddChild(MakeActionButton("合成", () => EmitSignal(SignalName.OnCraftClicked)));
-		content.AddChild(MakeActionButton("休息", () => EmitSignal(SignalName.OnRestClicked)));
-		_sharpenBtn = MakeActionButton("磨刀 -8精力", () => EmitSignal(SignalName.OnSharpenClicked));
+		_craftBtn = MakeActionButton("", () => EmitSignal(SignalName.OnCraftClicked));
+		content.AddChild(_craftBtn);
+		_restBtn = MakeActionButton("", () => EmitSignal(SignalName.OnRestClicked));
+		content.AddChild(_restBtn);
+		_sharpenBtn = MakeActionButton("", () => EmitSignal(SignalName.OnSharpenClicked));
 		content.AddChild(_sharpenBtn);
-		_ritualBtn = MakeActionButton("夜仪", () => EmitSignal(SignalName.OnNightRitualClicked));
+		_ritualBtn = MakeActionButton("", () => EmitSignal(SignalName.OnNightRitualClicked));
 		_ritualBtn.Visible = false;
 		content.AddChild(_ritualBtn);
 		content.AddChild(MakeSeparator());
 
-		AddStat(content, "生命", out _hpBar, out _hpValue, false, false);
-		AddStat(content, "饱食", out _hungerBar, out _hungerValue, false, false);
-		AddStat(content, "口渴", out _thirstBar, out _thirstValue, false, false);
-		AddStat(content, "精力", out _energyBar, out _energyValue, true, false);
-		AddStat(content, "精神", out _sanityBar, out _sanityValue, false, true);
+		AddStatRow(content, "ui.stat.health", out _hpBar, out _hpValue, false, false);
+		AddStatRow(content, "ui.stat.hunger", out _hungerBar, out _hungerValue, false, false);
+		AddStatRow(content, "ui.stat.thirst", out _thirstBar, out _thirstValue, false, false);
+		AddStatRow(content, "ui.stat.energy", out _energyBar, out _energyValue, true, false);
+		AddStatRow(content, "ui.stat.sanity", out _sanityBar, out _sanityValue, false, true);
 		content.AddChild(MakeSeparator());
-		var nutHdr = new Label { Text = "营养 / 体成分" };
-		GameTheme.StyleSectionLabel(nutHdr, GameTheme.TextMuted);
-		content.AddChild(nutHdr);
-		AddNutrientBar(content, "蛋白质", out _proteinBar, out _proteinValue);
-		AddNutrientBar(content, "维生素", out _vitaminsBar, out _vitaminsValue);
-		AddNutrientBar(content, "碳水", out _carbBar, out _carbValue);
-		AddBodyFatBar(content, "体脂倾向", out _bodyFatBar, out _bodyFatValue);
+		_nutHdrLabel = new Label();
+		GameTheme.StyleSectionLabel(_nutHdrLabel, GameTheme.TextMuted);
+		content.AddChild(_nutHdrLabel);
+		AddNutrientBar(content, "ui.stat.protein", out _proteinBar, out _proteinValue);
+		AddNutrientBar(content, "ui.stat.vitamins", out _vitaminsBar, out _vitaminsValue);
+		AddNutrientBar(content, "ui.stat.carb", out _carbBar, out _carbValue);
+		AddBodyFatBar(content, "ui.stat.bodyfat", out _bodyFatBar, out _bodyFatValue);
 		content.AddChild(MakeSeparator());
 
 		_tempLabel = MakeInfoLine(content);
@@ -122,7 +131,8 @@ public partial class StatusPanel : PanelContainer
 		content.AddChild(spacer);
 
 		content.AddChild(MakeSeparator());
-		content.AddChild(MakeActionButton("菜单", () => EmitSignal(SignalName.OnMenuClicked), 30));
+		_menuBtn = MakeActionButton("", () => EmitSignal(SignalName.OnMenuClicked), 30);
+		content.AddChild(_menuBtn);
 
 		_player.OnStatsChanged += UpdateStats;
 		_time.OnTimeChanged += (_, _, _) => UpdateStats();
@@ -133,7 +143,28 @@ public partial class StatusPanel : PanelContainer
 		_map.OnLocationChanged += _ => UpdateStats();
 		_cards.OnCardAdded += _ => UpdateStats();
 		_cards.OnCardRemoved += _ => UpdateStats();
+		I18n.LocaleChanged += ApplyStaticI18n;
+		ApplyStaticI18n();
 		UpdateStats();
+	}
+
+	public override void _ExitTree()
+	{
+		I18n.LocaleChanged -= ApplyStaticI18n;
+		base._ExitTree();
+	}
+
+	private void ApplyStaticI18n()
+	{
+		_headerLabel.Text = I18n.T("ui.survivor");
+		_nutHdrLabel.Text = I18n.T("ui.nutrition_header");
+		_craftBtn.Text = I18n.T("ui.craft");
+		_restBtn.Text = I18n.T("ui.rest");
+		_sharpenBtn.Text = I18n.T("ui.sharpen");
+		_ritualBtn.Text = I18n.T("ui.night_ritual");
+		_menuBtn.Text = I18n.T("ui.menu");
+		foreach (var pair in _statTitleI18n)
+			pair.Label.Text = I18n.T(pair.Key);
 	}
 
 	private static Button MakeActionButton(string text, Action onPressed, int height = 34)
@@ -152,17 +183,18 @@ public partial class StatusPanel : PanelContainer
 		return sep;
 	}
 
-	private static void AddStat(VBoxContainer parent, string title, out ProgressBar bar, out Label value, bool energy, bool sanity)
+	private void AddStatRow(VBoxContainer parent, string titleKey, out ProgressBar bar, out Label value, bool energy, bool sanity)
 	{
 		var row = new HBoxContainer();
 		row.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		parent.AddChild(row);
 
-		var label = new Label { Text = title };
+		var label = new Label { Text = I18n.T(titleKey) };
 		label.AddThemeFontSizeOverride("font_size", 12);
 		label.AddThemeColorOverride("font_color", GameTheme.TextMuted);
 		label.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		row.AddChild(label);
+		_statTitleI18n.Add((label, titleKey));
 
 		value = new Label();
 		value.HorizontalAlignment = HorizontalAlignment.Right;
@@ -184,15 +216,15 @@ public partial class StatusPanel : PanelContainer
 		bar.SetMeta("sanity", sanity);
 	}
 
-	private static void AddNutrientBar(VBoxContainer parent, string title, out ProgressBar bar, out Label value)
+	private void AddNutrientBar(VBoxContainer parent, string titleKey, out ProgressBar bar, out Label value)
 	{
-		AddStat(parent, title, out bar, out value, false, false);
+		AddStatRow(parent, titleKey, out bar, out value, false, false);
 		bar.SetMeta("nutrient", true);
 	}
 
-	private static void AddBodyFatBar(VBoxContainer parent, string title, out ProgressBar bar, out Label value)
+	private void AddBodyFatBar(VBoxContainer parent, string titleKey, out ProgressBar bar, out Label value)
 	{
-		AddStat(parent, title, out bar, out value, false, false);
+		AddStatRow(parent, titleKey, out bar, out value, false, false);
 		bar.SetMeta("bodyfat", true);
 	}
 
@@ -218,13 +250,13 @@ public partial class StatusPanel : PanelContainer
 		SetNutrientBar(_vitaminsBar, _vitaminsValue, _player.State.Vitamins);
 		SetNutrientBar(_carbBar, _carbValue, _player.State.Carbohydrate);
 		SetBodyFatBar(_bodyFatBar, _bodyFatValue, _player.State.BodyFatIndex);
-		_tempLabel.Text = $"温度 {_player.State.Temperature}°C";
-		_weatherLabel.Text = $"天气 {_time.GetWeatherDescription()}";
-		_timeLabel.Text = $"时间 {_time.GetTimeDisplay()}";
-		_dayLabel.Text = $"第 {_time.CurrentDay} 天";
-		_seasonLabel.Text = $"季节 {_time.GetSeasonDisplay()}";
+		_tempLabel.Text = I18n.Tf("ui.temp_fmt", _player.State.Temperature);
+		_weatherLabel.Text = I18n.Tf("ui.weather_fmt", I18n.T(_time.GetWeatherMessageKey()));
+		_timeLabel.Text = I18n.Tf("ui.time_fmt", _time.GetTimeDisplay());
+		_dayLabel.Text = I18n.Tf("ui.day_fmt", _time.CurrentDay);
+		_seasonLabel.Text = I18n.Tf("ui.season_fmt", I18n.T(_time.GetSeasonMessageKey()));
 		var locName = _map.GetLocation(_player.State.CurrentLocation)?.Name ?? _player.State.CurrentLocation;
-		_locationLabel.Text = $"位置 {locName}";
+		_locationLabel.Text = I18n.Tf("ui.location_fmt", locName);
 
 		UpdateEffects();
 	}
@@ -234,7 +266,7 @@ public partial class StatusPanel : PanelContainer
 		var diseases = _effects.GetDiseases();
 		var buffs = _effects.GetBuffs();
 
-		var parts = new System.Collections.Generic.List<string>();
+		var parts = new List<string>();
 		foreach (var d in diseases)
 		{
 			var def = _effects.GetDefinition(d.EffectId);
@@ -248,7 +280,7 @@ public partial class StatusPanel : PanelContainer
 				parts.Add(def.Name);
 		}
 
-		_effectLabel.Text = parts.Count > 0 ? string.Join(" · ", parts) : "状态良好";
+		_effectLabel.Text = parts.Count > 0 ? string.Join(" · ", parts) : I18n.T("ui.effects_ok");
 
 		var ritualOk = _time.IsNight()
 		               && _cards.HasCardInHand("campfire")

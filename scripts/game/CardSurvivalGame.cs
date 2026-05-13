@@ -4,6 +4,7 @@ using System.Linq;
 using CardSurvival;
 using CardSurvival.Data;
 using CardSurvival.Game.HandActions;
+using Godot;
 
 namespace CardSurvival.Game;
 
@@ -26,11 +27,13 @@ public sealed class CardSurvivalGame
 		public required Action<string> Log { get; init; }
 		public required Action RequestUiRefresh { get; init; }
 		public required Action RefreshCraftIfOpen { get; init; }
+		public Action? OnAchievementProbe { get; init; }
 		public Random Rng { get; init; } = new();
 	}
 
 	private readonly Host _h;
 	private List<CombineRule>? _rulesCache;
+	private SceneHandDanceCatalog? _sceneDanceCatalog;
 
 	public CardSurvivalGame(Host host) => _h = host;
 
@@ -55,8 +58,9 @@ public sealed class CardSurvivalGame
 		_h.Player.State.CurrentLocation = _h.Map.CurrentLocation;
 		EnsureAvailableProjects();
 		_h.Cards.DrawInitialHand(4);
+		_h.OnAchievementProbe?.Invoke();
 		_h.RequestUiRefresh();
-		_h.Log("[color=green]卡牌生存：万物皆卡。探索、拾取、合成，活下去。[/color]");
+		_h.Log(I18n.T("log.newgame"));
 	}
 
 	public bool TryLoadGame()
@@ -64,8 +68,9 @@ public sealed class CardSurvivalGame
 		var ok = _h.Save.LoadGame(_h.Player.State, _h.Cards, _h.Map, _h.Time, _h.Player, _h.Effects);
 		if (!ok) return false;
 		EnsureAvailableProjects();
+		_h.OnAchievementProbe?.Invoke();
 		_h.RequestUiRefresh();
-		_h.Log("[color=green]存档已加载。[/color]");
+		_h.Log(I18n.T("log.loadok"));
 		return true;
 	}
 
@@ -87,7 +92,7 @@ public sealed class CardSurvivalGame
 		var exploreCost = _h.Time.CurrentWeather == WeatherType.Foggy ? 15 : 10;
 		if (_h.Player.State.Energy < exploreCost)
 		{
-			_h.Log("[color=red]精力不足，无法探索。[/color]");
+			_h.Log(I18n.T("log.explore_no_energy"));
 			return;
 		}
 
@@ -97,15 +102,15 @@ public sealed class CardSurvivalGame
 		var pool = loc.GetExplorePoolForSeason(_h.Time.CurrentSeason);
 		var found = ExploreFromPool(pool);
 		_h.Log(found == null
-			? $"探索了 {loc.Name}，一无所获。"
-			: $"探索了 {loc.Name}，发现 {found.Name}。");
+			? I18n.Tf("log.explore_empty_fmt", loc.Name)
+			: I18n.Tf("log.explore_found_fmt", loc.Name, found.Name));
 
 		if (_h.Time.CurrentWeather == WeatherType.Sunny && _h.Rng.NextDouble() < 0.25)
 		{
 			var bonus = ExploreFromPool(pool);
 			_h.Log(bonus == null
-				? "[color=yellow]晴光下你多搜寻了一圈，没有更多收获。[/color]"
-				: $"[color=yellow]晴天馈赠：额外发现 {bonus.Name}。[/color]");
+				? I18n.T("log.sunny_extra_none")
+				: I18n.Tf("log.sunny_extra_fmt", bonus.Name));
 		}
 
 		if (loc.SpecialEffect == "energy_bonus")
@@ -115,6 +120,8 @@ public sealed class CardSurvivalGame
 
 		_h.Player.GainSkill("explore");
 		TriggerRandomEvent();
+		_h.Player.IncrementLifetimeExplore();
+		_h.OnAchievementProbe?.Invoke();
 		_h.RequestUiRefresh();
 	}
 
@@ -122,32 +129,32 @@ public sealed class CardSurvivalGame
 	{
 		if (_h.Player.State.Energy >= _h.Player.State.MaxEnergy)
 		{
-			_h.Log("[color=gray]你精神饱满，不需要休息。[/color]");
+			_h.Log(I18n.T("log.rest_full"));
 			return;
 		}
 
 		if (_h.Player.State.Hunger < 10 || _h.Player.State.Thirst < 10)
 		{
-			_h.Log("[color=red]太饿或太渴，无法安心休息。[/color]");
+			_h.Log(I18n.T("log.rest_hungry"));
 			return;
 		}
 
 		int energyRestore = 20;
-		var shelterType = "野外";
+		var shelterKey = "shelter.wild";
 		if (_h.Player.HasCompletedBuilding("stone_house"))
 		{
 			energyRestore = 60;
-			shelterType = "石屋";
+			shelterKey = "shelter.stone_house";
 		}
 		else if (_h.Player.HasCompletedBuilding("house"))
 		{
 			energyRestore = 45;
-			shelterType = "木屋";
+			shelterKey = "shelter.house";
 		}
 		else if (_h.Player.HasCompletedBuilding("tent") || _h.Cards.GetPlayableHand().Any(c => c.Id == "tent"))
 		{
 			energyRestore = 30;
-			shelterType = "帐篷";
+			shelterKey = "shelter.tent";
 		}
 
 		var timePassed = 0.12f;
@@ -161,7 +168,7 @@ public sealed class CardSurvivalGame
 		_h.Player.ConsumeHunger(5);
 		_h.Player.ConsumeThirst(3);
 		_h.Time.AdvanceTime(timePassed);
-		_h.Log($"[color=cyan]在{shelterType}休息，精力 +{energyRestore}。[/color]");
+		_h.Log(I18n.Tf("log.rest_fmt", I18n.T(shelterKey), energyRestore));
 		_h.RequestUiRefresh();
 	}
 
@@ -170,19 +177,19 @@ public sealed class CardSurvivalGame
 		const int cost = 8;
 		if (_h.Player.State.Energy < cost)
 		{
-			_h.Log("[color=red]精力不足，无法磨刀。[/color]");
+			_h.Log(I18n.T("log.sharpen_no_energy"));
 			return;
 		}
 
 		if (!_h.Cards.TrySharpenToolInHand())
 		{
-			_h.Log("[color=gray]没有可磨利的工具或武器。[/color]");
+			_h.Log(I18n.T("log.sharpen_no_tool"));
 			return;
 		}
 
 		_h.Player.ConsumeEnergy(cost);
 		_h.Time.AdvanceTime(0.02f);
-		_h.Log("[color=green]磨刀：工具耐久 +1，精力 -8。[/color]");
+		_h.Log(I18n.T("log.sharpen_ok"));
 		_h.RequestUiRefresh();
 	}
 
@@ -190,20 +197,20 @@ public sealed class CardSurvivalGame
 	{
 		if (!_h.Time.IsNight())
 		{
-			_h.Log("[color=gray]夜仪只在夜晚有效。[/color]");
+			_h.Log(I18n.T("log.ritual_not_night"));
 			return;
 		}
 
 		if (!_h.Cards.HasCardInHand("campfire") || !_h.Cards.HasCardInHand("herb"))
 		{
-			_h.Log("[color=red]需要手牌中有火堆与草药。[/color]");
+			_h.Log(I18n.T("log.ritual_need_cards"));
 			return;
 		}
 
 		var hasDisease = _h.Effects.GetDiseases().Count > 0;
 		if (!hasDisease && _h.Player.State.Sanity >= 50)
 		{
-			_h.Log("[color=gray]你尚不需要这场仪式。[/color]");
+			_h.Log(I18n.T("log.ritual_no_need"));
 			return;
 		}
 
@@ -217,11 +224,11 @@ public sealed class CardSurvivalGame
 		{
 			var removed = _h.Effects.TryRemoveFirstDisease();
 			_h.Log(removed
-				? "[color=magenta]夜仪：青烟升起，病痛稍退。[/color]"
-				: "[color=magenta]夜仪：心绪稍安。[/color]");
+				? I18n.T("log.ritual_cured")
+				: I18n.T("log.ritual_calm"));
 		}
 		else
-			_h.Log("[color=magenta]夜仪：草药在火边安抚了你的神经。[/color]");
+			_h.Log(I18n.T("log.ritual_sanity"));
 
 		_h.Player.UpdateSanity(20);
 		_h.RequestUiRefresh();
@@ -231,14 +238,14 @@ public sealed class CardSurvivalGame
 	{
 		if (!_h.Map.GetConnections(_h.Map.CurrentLocation).Contains(id))
 		{
-			_h.Log("[color=red]只能前往相邻区域。[/color]");
+			_h.Log(I18n.T("log.move_not_adjacent"));
 			return;
 		}
 
         var cost = Math.Max(1, (int)MathF.Round(15 * _h.Player.State.MoveEnergyCostMultiplier * _h.Player.GetBodyFatMoveMultiplier()));
 		if (_h.Player.State.Energy < cost)
 		{
-			_h.Log("[color=red]精力不足，无法移动。[/color]");
+			_h.Log(I18n.T("log.move_no_energy"));
 			return;
 		}
 
@@ -248,7 +255,7 @@ public sealed class CardSurvivalGame
 		_h.Time.AdvanceTime(0.10f);
 		_h.Map.MoveToLocation(id);
 		_h.Player.State.CurrentLocation = id;
-		_h.Log($"移动到 {(_h.Map.GetLocation(id)?.Name ?? id)}。");
+		_h.Log(I18n.Tf("log.move_fmt", _h.Map.GetLocation(id)?.Name ?? id));
 		_h.RequestUiRefresh();
 	}
 
@@ -278,13 +285,19 @@ public sealed class CardSurvivalGame
 
 	public bool TryStageCombineRecipe(CombineRule rule)
 	{
-		if (!_h.Cards.TryStageRecipe(rule, _h.Combine))
+		if (!_h.Combine.IsRecipeUnlockedForAttempt(rule))
 		{
-			_h.Log("[color=red]无法暂存（材料不足或已有暂存）。[/color]");
+			_h.Log(I18n.T("log.stage_locked"));
 			return false;
 		}
 
-		_h.Log("[color=cyan]已暂存配方材料，点击「待合成」卡进行合成。[/color]");
+		if (!_h.Cards.TryStageRecipe(rule, _h.Combine))
+		{
+			_h.Log(I18n.T("log.stage_fail"));
+			return false;
+		}
+
+		_h.Log(I18n.T("log.stage_ok"));
 		_h.RequestUiRefresh();
 		return true;
 	}
@@ -298,13 +311,12 @@ public sealed class CardSurvivalGame
 		_h.Time.AdvanceTime(SurviveTime.MinutesToDayFraction(_h.Combine.GetSynthesisMinutes(rule)));
 		foreach (var c in order)
 			_h.Cards.ConsumeCardFromHand(c, "staged_craft");
-		_h.Combine.LearnRuleAndResults(rule);
 		foreach (var id in rule.Results)
 			AddCraftResultToHandOrAnchored(id);
 		_h.Cards.ClearStagedCombineMetaOnly();
 		EnsureAvailableProjects();
 		_h.RefreshCraftIfOpen();
-		_h.Log($"[color=green]合成成功：{DescribeRule(rule)}。[/color]");
+		_h.Log(I18n.Tf("log.combine_success_fmt", DescribeRule(rule)));
 		return true;
 	}
 
@@ -317,9 +329,15 @@ public sealed class CardSurvivalGame
 	public bool CraftRecipe(CombineRule rule)
 	{
 		var play = _h.Cards.GetPlayableHand();
+		if (!_h.Combine.IsRecipeUnlockedForAttempt(rule))
+		{
+			_h.Log(I18n.T("log.recipe_locked"));
+			return false;
+		}
+
 		if (!_h.Combine.CanCraftRecipe(rule, play))
 		{
-			_h.Log("[color=red]材料不足。[/color]");
+			_h.Log(I18n.T("log.not_enough_mats"));
 			return false;
 		}
 
@@ -331,7 +349,7 @@ public sealed class CardSurvivalGame
 			AddResultToScene(id);
 
 		EnsureAvailableProjects();
-		_h.Log($"[color=green]合成成功：{DescribeRule(rule)}。[/color]");
+		_h.Log(I18n.Tf("log.combine_success_fmt", DescribeRule(rule)));
 		_h.RefreshCraftIfOpen();
 		return true;
 	}
@@ -358,7 +376,7 @@ public sealed class CardSurvivalGame
 		var material = _h.Cards.GetPlayableHand().FirstOrDefault(c => c.Id == def.MaterialId);
 		if (material == null)
 		{
-			_h.Log("[color=red]缺少建造材料。[/color]");
+			_h.Log(I18n.T("log.build_no_mat"));
 			return false;
 		}
 
@@ -367,7 +385,7 @@ public sealed class CardSurvivalGame
 		var minutes = stepMinutes / Math.Max(0.01f, _h.Player.State.BuildSpeed);
 		_h.Time.AdvanceTime(Math.Max(SurviveTime.MinutesToDayFraction(1f), SurviveTime.MinutesToDayFraction(minutes)));
 		var done = _h.Player.BuildProject(id);
-		_h.Log($"建造 {def.Name}: {project.Progress}/{project.Required}");
+		_h.Log(I18n.Tf("log.build_progress_fmt", def.Name, project.Progress, project.Required));
 
 		if (done)
 		{
@@ -375,7 +393,7 @@ public sealed class CardSurvivalGame
 			_h.Player.AddCompletedBuilding(id);
 			_h.Map.AddCompletedBuildingToEnvironment(def.ResultCardId);
 			AddResultToScene(def.ResultCardId);
-			_h.Log($"[color=green]{def.Name} 完成。[/color]");
+			_h.Log(I18n.Tf("log.build_done_fmt", def.Name));
 
 			if (id == "house" || id == "stone_house")
 				_h.Effects.AddEffect("sheltered", 1, -1);
@@ -393,8 +411,8 @@ public sealed class CardSurvivalGame
 			AddResultToScene(id);
 		EnsureAvailableProjects();
 		_h.Log(results.Length == 0
-			? $"[color=green]{a}+{b} 被消除。[/color]"
-			: $"[color=green]合成成功：{a}+{b}。[/color]");
+			? I18n.Tf("log.pair_vanish_fmt", a, b)
+			: I18n.Tf("log.pair_success_fmt", a, b));
 	}
 
 	public void OnMultiCombineSuccess(string[] ingredients, string[] results, double synthesisMinutes)
@@ -403,15 +421,15 @@ public sealed class CardSurvivalGame
 		foreach (var id in results)
 			AddResultToScene(id);
 		_h.Log(results.Length == 0
-			? $"[color=green]{string.Join("+", ingredients)} 被消除。[/color]"
-			: $"[color=green]自由合成成功：{string.Join("+", ingredients)}。[/color]");
+			? I18n.Tf("log.multi_vanish_fmt", string.Join("+", ingredients))
+			: I18n.Tf("log.multi_success_fmt", string.Join("+", ingredients)));
 	}
 
 	public List<CombineRule> GetLearnedRecipes()
 	{
 		_rulesCache ??= _h.Combine.GetRules();
 		return _rulesCache
-			.Where(r => IsStarterRecipe(r) || _h.Player.IsRecipeLearned(_h.Combine.GetRecipeKey(r)))
+			.Where(r => RecipeUnlockPolicy.IsVisibleInCraftList(_h.Settings, _h.Player.State, r, _h.Combine.GetRecipeKey(r)))
 			.ToList();
 	}
 
@@ -430,11 +448,90 @@ public sealed class CardSurvivalGame
 		}
 	}
 
+	/// <summary>
+	/// 手牌拖到场景/地点栏时：若当前地点与卡牌匹配 <c>scene_hand_dances.json</c> 中的规则，则消耗精力/时间尝试产出（如湖泊 + 长矛/鱼叉 → 鱼）。
+	/// </summary>
+	/// <param name="playDanceFeedback">为 true 时 UI 可做「场景舞动」反馈（通常表示成功获得产物）。</param>
+	/// <returns>已处理互动（含精力不足等）则为 true；无匹配规则则为 false，由调用方决定是否放下到场景。</returns>
+	public bool TrySceneHandDance(CardData tool, out bool playDanceFeedback)
+	{
+		playDanceFeedback = false;
+		EnsureSceneDanceCatalog();
+		var loc = _h.Map.CurrentLocation;
+		var rule = _sceneDanceCatalog?.Match(loc, tool.Id);
+
+		if (rule == null)
+			return false;
+
+		if (_h.Player.State.Energy < rule.EnergyCost)
+		{
+			var msg = string.IsNullOrEmpty(rule.LogNoEnergy)
+				? I18n.T("log.scene_no_energy")
+				: (rule.LogNoEnergy.StartsWith("[") ? rule.LogNoEnergy : $"[color=orange]{rule.LogNoEnergy}[/color]");
+			_h.Log(msg);
+			_h.RequestUiRefresh();
+			return true;
+		}
+
+		_h.Player.ConsumeEnergy(rule.EnergyCost);
+		var minutes = rule.TimeMinutes > 0f
+			? rule.TimeMinutes
+			: _h.Settings.GetDefaultActionMinutes("SceneHandDance");
+		_h.Time.AdvanceTime(SurviveTime.MinutesToDayFraction(minutes));
+
+		var success = rule.SuccessChance >= 1f || _h.Rng.NextDouble() <= rule.SuccessChance;
+		if (success)
+		{
+			var count = Math.Max(1, rule.ResultCount);
+			for (var i = 0; i < count; i++)
+			{
+				var inst = _h.Cards.CreateCardInstance(rule.ResultCardId);
+				if (inst != null)
+					_h.Cards.AddCardToHand(inst);
+			}
+
+			var resultName = _h.Cards.GetCard(rule.ResultCardId)?.Name ?? rule.ResultCardId;
+			var ok = string.IsNullOrEmpty(rule.LogSuccess)
+				? I18n.Tf("log.scene_success_fmt", resultName)
+				: (rule.LogSuccess.StartsWith("[") ? rule.LogSuccess : $"[color=green]{rule.LogSuccess}[/color]");
+			_h.Log(ok);
+			ApplySceneHandDanceDurability(tool, rule.DurabilityCost);
+			playDanceFeedback = true;
+		}
+		else
+		{
+			var fail = string.IsNullOrEmpty(rule.LogFail)
+				? I18n.T("log.scene_fail_default")
+				: (rule.LogFail.StartsWith("[") ? rule.LogFail : $"[color=yellow]{rule.LogFail}[/color]");
+			_h.Log(fail);
+			ApplySceneHandDanceDurability(tool, rule.DurabilityCost);
+		}
+
+		_h.RequestUiRefresh();
+		return true;
+	}
+
+	private void EnsureSceneDanceCatalog()
+	{
+		if (_sceneDanceCatalog != null) return;
+		var path = ProjectSettings.GlobalizePath(ContentPaths.SceneHandDances);
+		_sceneDanceCatalog = SceneHandDanceCatalog.Load(path);
+	}
+
+	private void ApplySceneHandDanceDurability(CardData tool, int cost)
+	{
+		if (cost <= 0) return;
+		if (tool.Durability <= 0) return;
+		tool.Durability -= cost;
+		if (tool.Durability <= 0)
+			_h.Cards.ConsumeCardFromHand(tool, "durability");
+	}
+
 	public void OnHandCardToScene(CardData data)
 	{
 		CardOpTime("DropToScene", data);
 		_h.Cards.MoveHandCardToScene(data);
-		_h.Log($"放下了 {data.Name}。");
+		_h.Log(I18n.Tf("log.drop_fmt", data.Name));
 		_h.RequestUiRefresh();
 	}
 
@@ -442,19 +539,19 @@ public sealed class CardSurvivalGame
 	{
 		CardOpTime("PickupScene", card);
 		_h.Cards.MoveSceneCardToHand(card);
-		_h.Log($"拾取了 {card.Name}。");
+		_h.Log(I18n.Tf("log.pickup_fmt", card.Name));
 		_h.RequestUiRefresh();
 	}
 
 	public void OnPlayerDeath()
 	{
-		_h.Log("[color=red]你倒下了。[/color]");
+		_h.Log(I18n.T("log.death"));
 	}
 
 	public void OnCardConsumed(string id, string reason)
 	{
 		if (reason == "hand_limit")
-			_h.Log($"[color=orange]手牌超过上限，丢弃 {id}。[/color]");
+			_h.Log(I18n.Tf("log.hand_overflow_fmt", id));
 		_h.RequestUiRefresh();
 	}
 
@@ -486,13 +583,13 @@ public sealed class CardSurvivalGame
 		{
 			var bonus = _h.Cards.ExploreLocation(_h.Map.CurrentLocation);
 			_h.Log(bonus == null
-				? "[color=yellow]发现了一些痕迹，但没有可用物资。[/color]"
-				: $"[color=yellow]幸运发现：{bonus.Name}。[/color]");
+				? I18n.T("log.lucky_trace")
+				: I18n.Tf("log.lucky_find_fmt", bonus.Name));
 		}
 		else
 		{
 			_h.Player.TakeDamage(10);
-			_h.Log("[color=orange]被毒蛇咬伤，生命 -10。[/color]");
+			_h.Log(I18n.T("log.snake"));
 		}
 	}
 
@@ -500,7 +597,7 @@ public sealed class CardSurvivalGame
 	{
 		if (_h.Player.HasCompletedBuilding("wall"))
 		{
-			_h.Log("[color=green]围墙挡住了野兽袭击。[/color]");
+			_h.Log(I18n.T("log.wolf_wall"));
 			return;
 		}
 
@@ -509,13 +606,13 @@ public sealed class CardSurvivalGame
 		if (_h.Rng.NextDouble() <= successChance)
 		{
 			_h.Player.GainSkill("fight");
-			_h.Log("[color=green]你赶走了野兽。[/color]");
+			_h.Log(I18n.T("log.wolf_repelled"));
 		}
 		else
 		{
 			_h.Player.TakeDamage(15);
 			_h.Effects.TryTriggerDisease("injury", 0.6f);
-			_h.Log("[color=orange]野兽袭击，生命 -15，可能受伤。[/color]");
+			_h.Log(I18n.T("log.wolf_hit"));
 		}
 	}
 
@@ -525,12 +622,12 @@ public sealed class CardSurvivalGame
 		                || _h.Player.HasCompletedBuilding("house")
 		                || _h.Player.HasCompletedBuilding("stone_house");
 		if (sheltered)
-			_h.Log("[color=cyan]暴风雨来了，但庇护所保护了你。[/color]");
+			_h.Log(I18n.T("log.storm_safe"));
 		else
 		{
 			_h.Player.UpdateTemperature(-5);
 			_h.Effects.TryTriggerDisease("cold", 0.3f);
-			_h.Log("[color=cyan]暴风雨来袭，温度 -5，可能感冒。[/color]");
+			_h.Log(I18n.T("log.storm_cold"));
 		}
 	}
 
@@ -552,21 +649,6 @@ public sealed class CardSurvivalGame
 		var card = _h.Cards.CreateCardInstance(id);
 		if (card != null)
 			_h.Cards.AddCardToScene(card);
-	}
-
-	private static bool IsStarterRecipe(CombineRule rule)
-	{
-		if (rule.Ingredients.Count > 0)
-			return false;
-		if (rule.Results.Contains("axe") && rule.CardA == "wood" && rule.CardB == "stone")
-			return true;
-		if (rule.Results.Contains("campfire") && rule.CardA == "wood" && rule.CardB == "wood")
-			return true;
-		if (rule.Results.Contains("cooked_meat") && (rule.CardA == "meat" || rule.CardA == "fish") && rule.CardB == "campfire")
-			return true;
-		if (rule.Results.Contains("tent") && rule.CardA == "wood" && rule.CardB == "hide")
-			return true;
-		return false;
 	}
 
 	private static string DescribeRule(CombineRule rule)

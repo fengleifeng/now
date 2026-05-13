@@ -24,6 +24,13 @@ public partial class CraftPopup : Control
 	private List<CardData> _hand = new();
 	private CardManager _cardManager = null!;
 	private CombineSystem _combineSystem = null!;
+	private Label _mainTitle = null!;
+	private Button _topClose = null!;
+	private Label _lblRecipes = null!;
+	private Label _lblProjects = null!;
+	private Label _lblFree = null!;
+	private Label _lblHandPick = null!;
+	private Button _clearButton = null!;
 
 	public override void _Ready()
 	{
@@ -32,6 +39,35 @@ public partial class CraftPopup : Control
 		SetAnchorsPreset(LayoutPreset.FullRect);
 		MouseFilter = MouseFilterEnum.Stop;
 		BuildUI();
+		I18n.LocaleChanged += OnLocaleChanged;
+		ApplyStaticI18n();
+	}
+
+	public override void _ExitTree()
+	{
+		I18n.LocaleChanged -= OnLocaleChanged;
+		base._ExitTree();
+	}
+
+	private void OnLocaleChanged()
+	{
+		ApplyStaticI18n();
+		RefreshRecipes();
+		RefreshProjects();
+		RefreshHand();
+		RefreshFreeCraft();
+	}
+
+	private void ApplyStaticI18n()
+	{
+		_mainTitle.Text = I18n.T("craft.popup_title");
+		_topClose.Text = I18n.T("craft.close");
+		_lblRecipes.Text = I18n.T("craft.section_recipes");
+		_lblProjects.Text = I18n.T("craft.section_projects");
+		_lblFree.Text = I18n.T("craft.section_free");
+		_lblHandPick.Text = I18n.T("craft.section_hand");
+		_freeCraftButton.Text = I18n.T("craft.combine");
+		_clearButton.Text = I18n.T("craft.clear");
 	}
 
 	private void BuildUI()
@@ -56,19 +92,35 @@ public partial class CraftPopup : Control
 		root.AddThemeConstantOverride("separation", 6);
 		margin.AddChild(root);
 
-		root.AddChild(CreateTitleRow("合成与建造"));
-		root.AddChild(MakeTitle("配方"));
+		var titleRow = new HBoxContainer();
+		titleRow.AddThemeConstantOverride("separation", 8);
+		root.AddChild(titleRow);
+
+		_mainTitle = new Label();
+		_mainTitle.AddThemeFontSizeOverride("font_size", 16);
+		_mainTitle.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		titleRow.AddChild(_mainTitle);
+
+		_topClose = new Button { CustomMinimumSize = new Vector2(70, 28) };
+		GameTheme.StyleSidebarButton(_topClose);
+		_topClose.Pressed += () => OnClose?.Invoke();
+		titleRow.AddChild(_topClose);
+
+		_lblRecipes = CreateSectionLabel();
+		root.AddChild(_lblRecipes);
 		_recipeList = MakeList(root, 112, vertical: true);
 
-		root.AddChild(MakeTitle("工程"));
+		_lblProjects = CreateSectionLabel();
+		root.AddChild(_lblProjects);
 		_projectList = MakeList(root, 118, vertical: true);
 
-		root.AddChild(MakeTitle("自由合成"));
+		_lblFree = CreateSectionLabel();
+		root.AddChild(_lblFree);
 		_slotRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
 		_slotRow.AddThemeConstantOverride("separation", 6);
 		root.AddChild(_slotRow);
 
-		_preview = new Label { Text = "选择 2-4 张手牌进行尝试", HorizontalAlignment = HorizontalAlignment.Center };
+		_preview = new Label { HorizontalAlignment = HorizontalAlignment.Center };
 		_preview.AddThemeFontSizeOverride("font_size", 12);
 		root.AddChild(_preview);
 
@@ -76,15 +128,16 @@ public partial class CraftPopup : Control
 		buttonRow.AddThemeConstantOverride("separation", 8);
 		root.AddChild(buttonRow);
 
-		_freeCraftButton = new Button { Text = "合成", Disabled = true, CustomMinimumSize = new Vector2(80, 28) };
+		_freeCraftButton = new Button { Disabled = true, CustomMinimumSize = new Vector2(80, 28) };
 		_freeCraftButton.Pressed += () => OnFreeCraft?.Invoke(new List<CardData>(_selected));
 		buttonRow.AddChild(_freeCraftButton);
 
-		var clear = new Button { Text = "清空", CustomMinimumSize = new Vector2(80, 28) };
-		clear.Pressed += ClearSelection;
-		buttonRow.AddChild(clear);
+		_clearButton = new Button { CustomMinimumSize = new Vector2(80, 28) };
+		_clearButton.Pressed += ClearSelection;
+		buttonRow.AddChild(_clearButton);
 
-		root.AddChild(MakeTitle("手牌选择"));
+		_lblHandPick = CreateSectionLabel();
+		root.AddChild(_lblHandPick);
 		var handScroll = new ScrollContainer
 		{
 			CustomMinimumSize = new Vector2(0, 70),
@@ -100,26 +153,9 @@ public partial class CraftPopup : Control
 		RefreshFreeCraft();
 	}
 
-	private HBoxContainer CreateTitleRow(string titleText)
+	private static Label CreateSectionLabel()
 	{
-		var row = new HBoxContainer();
-		row.AddThemeConstantOverride("separation", 8);
-
-		var title = new Label { Text = titleText };
-		title.AddThemeFontSizeOverride("font_size", 16);
-		title.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		row.AddChild(title);
-
-		var close = new Button { Text = "关闭", CustomMinimumSize = new Vector2(70, 28) };
-		GameTheme.StyleSidebarButton(close);
-		close.Pressed += () => OnClose?.Invoke();
-		row.AddChild(close);
-		return row;
-	}
-
-	private static Label MakeTitle(string text)
-	{
-		var label = new Label { Text = text };
+		var label = new Label();
 		label.AddThemeFontSizeOverride("font_size", 13);
 		label.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f));
 		return label;
@@ -156,7 +192,7 @@ public partial class CraftPopup : Control
 		Clear(_recipeList);
 		if (_recipes.Count == 0)
 		{
-			_recipeList.AddChild(new Label { Text = "还没有配方。可从手牌选择物品进行自由合成。" });
+			_recipeList.AddChild(new Label { Text = I18n.T("craft.no_recipes_yet") });
 			return;
 		}
 
@@ -171,12 +207,12 @@ public partial class CraftPopup : Control
 			label.ClipText = true;
 			row.AddChild(label);
 
-			var stageBtn = new Button { Text = "暂存", Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(56, 24) };
+			var stageBtn = new Button { Text = I18n.T("craft.stage"), Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(56, 24) };
 			var captured = rule;
 			stageBtn.Pressed += () => OnStageRecipe?.Invoke(captured);
 			row.AddChild(stageBtn);
 
-			var craftBtn = new Button { Text = "立即", Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(56, 24) };
+			var craftBtn = new Button { Text = I18n.T("craft.craft_now"), Disabled = !HasIngredients(rule), CustomMinimumSize = new Vector2(56, 24) };
 			craftBtn.Pressed += () => OnCraftRecipe?.Invoke(captured);
 			row.AddChild(craftBtn);
 		}
@@ -187,7 +223,7 @@ public partial class CraftPopup : Control
 		Clear(_projectList);
 		if (_projects.Count == 0)
 		{
-			_projectList.AddChild(new Label { Text = "暂无可建造工程。" });
+			_projectList.AddChild(new Label { Text = I18n.T("craft.no_projects") });
 			return;
 		}
 
@@ -200,13 +236,13 @@ public partial class CraftPopup : Control
 			row.AddThemeConstantOverride("separation", 8);
 			_projectList.AddChild(row);
 
-			var label = new Label { Text = $"{def.Name}  材料:{GetName(def.MaterialId)}  {project.Progress}/{project.Required}" };
+			var label = new Label { Text = I18n.Tf("craft.project_line_fmt", def.Name, GetName(def.MaterialId), project.Progress, project.Required) };
 			label.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 			label.ClipText = true;
 			row.AddChild(label);
 
 			var hasMat = _hand.Any(c => c.Id == def.MaterialId);
-			var build = new Button { Text = "建造", Disabled = !hasMat, CustomMinimumSize = new Vector2(70, 24) };
+			var build = new Button { Text = I18n.T("craft.build"), Disabled = !hasMat, CustomMinimumSize = new Vector2(70, 24) };
 			var id = project.Id;
 			build.Pressed += () => OnBuildProject?.Invoke(id);
 			row.AddChild(build);
@@ -242,7 +278,7 @@ public partial class CraftPopup : Control
 		Clear(_slotRow);
 		for (int i = 0; i < 4; i++)
 		{
-			var text = i < _selected.Count ? _selected[i].Name : "空";
+			var text = i < _selected.Count ? _selected[i].Name : I18n.T("craft.empty_slot");
 			var button = new Button { Text = text, CustomMinimumSize = new Vector2(88, 34), Disabled = i >= _selected.Count };
 			var index = i;
 			button.Pressed += () =>
@@ -260,10 +296,10 @@ public partial class CraftPopup : Control
 		_freeCraftButton.Disabled = _selected.Count < 2;
 		var preview = _combineSystem.PreviewResult(_selected);
 		_preview.Text = _selected.Count < 2
-			? "选择 2-4 张手牌进行尝试"
+			? I18n.T("craft.preview_need_more")
 			: preview == null
-				? "预览：没有匹配配方"
-				: $"预览：{string.Join(" + ", _selected.Select(c => c.Name))} -> {DescribeResultIds(preview)}";
+				? I18n.T("craft.preview_no_rule")
+				: I18n.Tf("craft.preview_fmt", string.Join(" + ", _selected.Select(c => c.Name)), DescribeResultIds(preview));
 	}
 
 	private void ClearSelection()
@@ -323,12 +359,12 @@ public partial class CraftPopup : Control
 
 	private string DescribeResults(CombineRule rule)
 	{
-		return rule.Results.Count == 0 ? "消除" : string.Join("+", rule.Results.Select(GetName));
+		return rule.Results.Count == 0 ? I18n.T("craft.eliminate") : string.Join("+", rule.Results.Select(GetName));
 	}
 
 	private string DescribeResultIds(string ids)
 	{
-		if (string.IsNullOrEmpty(ids)) return "消除";
+		if (string.IsNullOrEmpty(ids)) return I18n.T("craft.eliminate");
 		return string.Join("+", ids.Split("+").Select(GetName));
 	}
 

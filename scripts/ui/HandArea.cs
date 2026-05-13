@@ -9,6 +9,7 @@ public partial class HandArea : PanelContainer
     [Signal] public delegate void OnHandCardDragEndedEventHandler(CardNode card);
 
     private HBoxContainer _cards = null!;
+    private Label _titleLabel = null!;
 
     public override void _Ready()
     {
@@ -29,9 +30,10 @@ public partial class HandArea : PanelContainer
         box.SizeFlagsVertical = SizeFlags.ExpandFill;
         margin.AddChild(box);
 
-        var label = new Label { Text = "手牌" };
+        var label = new Label();
         GameTheme.StyleSectionLabel(label, GameTheme.AccentHand);
         box.AddChild(label);
+        _titleLabel = label;
 
         var scroll = new ScrollContainer
         {
@@ -46,7 +48,18 @@ public partial class HandArea : PanelContainer
         _cards = new HBoxContainer();
         _cards.AddThemeConstantOverride("separation", 8);
         scroll.AddChild(_cards);
+
+        ApplyTitle();
+        I18n.LocaleChanged += ApplyTitle;
     }
+
+    public override void _ExitTree()
+    {
+        I18n.LocaleChanged -= ApplyTitle;
+        base._ExitTree();
+    }
+
+    private void ApplyTitle() => _titleLabel.Text = I18n.T("ui.hand");
 
     public void Refresh(List<CardData> hand)
     {

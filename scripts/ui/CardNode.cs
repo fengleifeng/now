@@ -284,27 +284,14 @@ public partial class CardNode : Control
 		return null;
 	}
 
-	private static string GetTypeText(CardType type) => type switch
-	{
-		CardType.Resource => "资源",
-		CardType.Creature => "生物",
-		CardType.Tool => "工具",
-		CardType.Weapon => "武器",
-		CardType.Building => "建筑",
-		CardType.Status => "状态",
-		CardType.Event => "事件",
-		CardType.Location => "地点",
-		CardType.Container => "容器",
-		CardType.Seed => "种子",
-		_ => "卡牌"
-	};
+	private static string GetTypeText(CardType type) => I18n.CardTypeName(type);
 
 	private static string GetAttrText(CardData data)
 	{
-		if (data.Durability > 0) return $"耐久 {data.Durability}";
-		if (data.FoodValue > 0) return $"饱食 +{data.FoodValue}";
-		if (data.HealValue > 0) return $"治疗 +{data.HealValue}";
-		if (data.ThirstValue > 0) return $"解渴 +{data.ThirstValue}";
+		if (data.Durability > 0) return I18n.Tf("card.hint.durability_fmt", data.Durability);
+		if (data.FoodValue > 0) return I18n.Tf("card.hint.food_fmt", data.FoodValue);
+		if (data.HealValue > 0) return I18n.Tf("card.hint.heal_fmt", data.HealValue);
+		if (data.ThirstValue > 0) return I18n.Tf("card.hint.thirst_fmt", data.ThirstValue);
 		return "";
 	}
 
