@@ -11,4 +11,6 @@ public class CombineRule
 	public float Chance { get; set; } = 1.0f;
 	public bool MatchByTag { get; set; } = false;
 	public List<string> Ingredients { get; set; } = new();
+	/// <summary>整条合成耗时（分钟）；大于 0 时覆盖产物卡 CombineMinutes 之和。</summary>
+	public float TimeMinutes { get; set; }
 }

@@ -11,6 +11,8 @@ public class ProjectData
     public string ResultCardId { get; set; } = "";
     public string UnlockRecipe { get; set; } = "";
     public string Description { get; set; } = "";
+    /// <summary>每步建造消耗时间（游戏分钟）；0 表示使用全局 DefaultActionMinutes.BuildProjectStep。</summary>
+    public int BuildStepMinutes { get; set; }
 }
 
 public class ProjectState

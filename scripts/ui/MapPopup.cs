@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using CardSurvival.Data;
 
@@ -19,10 +20,13 @@ public partial class MapPopup : Control
 
     private void BuildUI()
     {
-        AddChild(CreateOverlay());
+        ModalUi.AddDimOverlay(this, () => OnClose?.Invoke());
+        var center = ModalUi.AddCenterLayer(this);
 
-        var panel = CreateCenteredPanel(new Vector2(500, 430));
-        AddChild(panel);
+        var shell = new PanelContainer();
+        shell.CustomMinimumSize = new Vector2(500, 430);
+        GameTheme.ApplyModalPanel(shell);
+        center.AddChild(shell);
 
         var margin = new MarginContainer();
         margin.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -30,7 +34,7 @@ public partial class MapPopup : Control
         margin.AddThemeConstantOverride("margin_right", 12);
         margin.AddThemeConstantOverride("margin_top", 10);
         margin.AddThemeConstantOverride("margin_bottom", 10);
-        panel.AddChild(margin);
+        shell.AddChild(margin);
 
         var box = new VBoxContainer();
         box.AddThemeConstantOverride("separation", 8);
@@ -45,6 +49,7 @@ public partial class MapPopup : Control
         titleRow.AddChild(title);
 
         var close = new Button { Text = "关闭", CustomMinimumSize = new Vector2(70, 28) };
+        GameTheme.StyleSidebarButton(close);
         close.Pressed += () => OnClose?.Invoke();
         titleRow.AddChild(close);
 
@@ -52,34 +57,14 @@ public partial class MapPopup : Control
         {
             SizeFlagsVertical = SizeFlags.ExpandFill,
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Auto
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            ClipContents = true
         };
         box.AddChild(scroll);
 
         _list = new VBoxContainer();
         _list.AddThemeConstantOverride("separation", 6);
         scroll.AddChild(_list);
-    }
-
-    private ColorRect CreateOverlay()
-    {
-        var overlay = new ColorRect { Color = new Color(0, 0, 0, 0.62f) };
-        overlay.SetAnchorsPreset(LayoutPreset.FullRect);
-        overlay.MouseFilter = MouseFilterEnum.Stop;
-        overlay.GuiInput += e =>
-        {
-            if (e is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
-                OnClose?.Invoke();
-        };
-        return overlay;
-    }
-
-    private static Panel CreateCenteredPanel(Vector2 size)
-    {
-        var panel = new Panel();
-        panel.CustomMinimumSize = size;
-        panel.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.Center);
-        return panel;
     }
 
     public void Refresh(string currentLocationId, List<LocationData> allLocations)
@@ -107,6 +92,7 @@ public partial class MapPopup : Control
             {
                 var id = loc.Id;
                 var move = new Button { Text = "前往", CustomMinimumSize = new Vector2(70, 30) };
+                GameTheme.StyleMoveButton(move);
                 move.Pressed += () => OnMoveToLocation?.Invoke(id);
                 row.AddChild(move);
             }

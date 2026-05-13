@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using CardSurvival.Data;
 
@@ -9,6 +10,8 @@ public partial class EnvironmentArea : PanelContainer
 
     public override void _Ready()
     {
+        GameTheme.ApplyPanelSoft(this, GameTheme.PanelMain);
+
         var margin = new MarginContainer();
         margin.AddThemeConstantOverride("margin_left", 10);
         margin.AddThemeConstantOverride("margin_right", 10);
@@ -25,8 +28,7 @@ public partial class EnvironmentArea : PanelContainer
         margin.AddChild(box);
 
         var title = new Label { Text = "环境" };
-        title.AddThemeFontSizeOverride("font_size", 12);
-        title.AddThemeColorOverride("font_color", new Color(0.72f, 0.72f, 0.72f));
+        GameTheme.StyleSectionLabel(title, GameTheme.TextMuted);
         box.AddChild(title);
 
         var scroll = new ScrollContainer
@@ -34,7 +36,8 @@ public partial class EnvironmentArea : PanelContainer
             VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
         };
         box.AddChild(scroll);
 
@@ -80,6 +83,7 @@ public partial class EnvironmentArea : PanelContainer
         var text = new Label();
         text.Text = count > 1 ? $"{card.Name} x{count}\n{GetTypeText(card.Type)}" : $"{card.Name}\n{GetTypeText(card.Type)}";
         text.AddThemeFontSizeOverride("font_size", 11);
+        text.AddThemeColorOverride("font_color", GameTheme.TextPrimary);
         text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         row.AddChild(text);
 

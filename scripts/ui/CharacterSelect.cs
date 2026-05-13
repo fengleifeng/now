@@ -39,11 +39,11 @@ public partial class CharacterSelect : Control
 
 	public override void _Ready()
 	{
-		_startButton = GetNode<Button>("MainContainer/StartButton");
-		_backButton = GetNode<Button>("MainContainer/BackButton");
-		_selectedLabel = GetNode<Label>("MainContainer/SelectedLabel");
+		_startButton = GetNode<Button>("CenterRoot/MainContainer/StartButton");
+		_backButton = GetNode<Button>("CenterRoot/MainContainer/BackButton");
+		_selectedLabel = GetNode<Label>("CenterRoot/MainContainer/SelectedLabel");
 
-		var grid = GetNode<GridContainer>("MainContainer/TraitsGrid");
+		var grid = GetNode<GridContainer>("CenterRoot/MainContainer/TraitsGrid");
 		foreach (var child in grid.GetChildren())
 		{
 			if (child is Button button)
@@ -88,16 +88,19 @@ public partial class CharacterSelect : Control
 
 	private void UpdateSelectedDisplay()
 	{
-		_selectedLabel.Text = $"已选择: {(_selectedTrait.HasValue ? 1 : 0)}/1";
-		_startButton.Disabled = !_selectedTrait.HasValue;
+		_selectedLabel.Text = _selectedTrait.HasValue
+			? $"已选特质：{_selectedTrait.Value}（可直接开始）"
+			: "未选特质：将以默认营养与无特质加成开局";
+		_startButton.Disabled = false;
 	}
 
 	private void OnStartPressed()
 	{
-		if (!_selectedTrait.HasValue) return;
-
 		var playerSystem = GetNode<PlayerSystem>("/root/PlayerSystem");
-		playerSystem.SetTraits(new List<CharacterTrait> { _selectedTrait.Value });
+		if (_selectedTrait.HasValue)
+			playerSystem.SetTraits(new List<CharacterTrait> { _selectedTrait.Value });
+		else
+			playerSystem.SetTraits(new List<CharacterTrait>());
 
 		GetTree().ChangeSceneToFile("res://scenes/GameRoot.tscn");
 	}

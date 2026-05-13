@@ -12,6 +12,8 @@ public partial class HandArea : PanelContainer
 
     public override void _Ready()
     {
+        GameTheme.ApplyPanelSoft(this, GameTheme.PanelMain);
+
         var margin = new MarginContainer();
         margin.AddThemeConstantOverride("margin_left", 10);
         margin.AddThemeConstantOverride("margin_right", 10);
@@ -28,7 +30,7 @@ public partial class HandArea : PanelContainer
         margin.AddChild(box);
 
         var label = new Label { Text = "手牌" };
-        label.AddThemeFontSizeOverride("font_size", 12);
+        GameTheme.StyleSectionLabel(label, GameTheme.AccentHand);
         box.AddChild(label);
 
         var scroll = new ScrollContainer
@@ -36,7 +38,8 @@ public partial class HandArea : PanelContainer
             HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
             VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
         };
         box.AddChild(scroll);
 
@@ -48,10 +51,10 @@ public partial class HandArea : PanelContainer
     public void Refresh(List<CardData> hand)
     {
         foreach (var child in _cards.GetChildren().ToArray())
-            {
-                _cards.RemoveChild(child);
-                child.QueueFree();
-            }
+        {
+            _cards.RemoveChild(child);
+            child.QueueFree();
+        }
 
         foreach (var card in hand)
         {

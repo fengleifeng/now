@@ -12,10 +12,14 @@ public partial class LocationInfoBar : PanelContainer
     private Label _description = null!;
     private HBoxContainer _actions = null!;
     private MapSystem _map = null!;
+    private TimeSystem _time = null!;
 
     public override void _Ready()
     {
         _map = GetNode<MapSystem>("/root/MapSystem");
+        _time = GetNode<TimeSystem>("/root/TimeSystem");
+
+        GameTheme.ApplyPanel(this, GameTheme.PanelMain);
 
         var margin = new MarginContainer();
         margin.AddThemeConstantOverride("margin_left", 12);
@@ -37,12 +41,12 @@ public partial class LocationInfoBar : PanelContainer
         _title = new Label();
         _title.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         _title.AddThemeFontSizeOverride("font_size", 16);
-        _title.AddThemeColorOverride("font_color", new Color(0.7f, 0.85f, 0.7f));
+        _title.AddThemeColorOverride("font_color", GameTheme.AccentRegion);
         titleRow.AddChild(_title);
 
         _description = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
         _description.AddThemeFontSizeOverride("font_size", 12);
-        _description.AddThemeColorOverride("font_color", new Color(0.65f, 0.65f, 0.65f));
+        _description.AddThemeColorOverride("font_color", GameTheme.TextMuted);
         _description.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         box.AddChild(_description);
 
@@ -63,7 +67,9 @@ public partial class LocationInfoBar : PanelContainer
             child.QueueFree();
         }
 
-        var explore = new Button { Text = "探索 -10精力", CustomMinimumSize = new Vector2(122, 30) };
+        var exploreCost = _time.CurrentWeather == WeatherType.Foggy ? 15 : 10;
+        var explore = new Button { Text = $"探索 -{exploreCost}精力", CustomMinimumSize = new Vector2(128, 32) };
+        GameTheme.StyleExploreButton(explore);
         explore.Pressed += () => EmitSignal(SignalName.OnExploreClicked);
         _actions.AddChild(explore);
 
@@ -71,7 +77,8 @@ public partial class LocationInfoBar : PanelContainer
         {
             var id = connection;
             var name = _map.GetLocation(id)?.Name ?? id;
-            var move = new Button { Text = $"前往 {name}", CustomMinimumSize = new Vector2(112, 30) };
+            var move = new Button { Text = $"前往 {name}", CustomMinimumSize = new Vector2(118, 32) };
+            GameTheme.StyleMoveButton(move);
             move.Pressed += () => EmitSignal(SignalName.OnMoveToLocation, id);
             _actions.AddChild(move);
         }

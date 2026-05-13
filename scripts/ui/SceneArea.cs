@@ -14,6 +14,8 @@ public partial class SceneArea : PanelContainer
 
     public override void _Ready()
     {
+        GameTheme.ApplyPanelSoft(this, GameTheme.PanelMain);
+
         var margin = new MarginContainer();
         margin.AddThemeConstantOverride("margin_left", 10);
         margin.AddThemeConstantOverride("margin_right", 10);
@@ -31,7 +33,7 @@ public partial class SceneArea : PanelContainer
 
         // === 第一行：不可移动卡牌（地点、永久建筑） ===
         var immovableLabel = new Label { Text = "场景" };
-        immovableLabel.AddThemeFontSizeOverride("font_size", 12);
+        GameTheme.StyleSectionLabel(immovableLabel, GameTheme.AccentScene);
         box.AddChild(immovableLabel);
 
         var immovableScroll = new ScrollContainer
@@ -40,7 +42,8 @@ public partial class SceneArea : PanelContainer
             VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ShrinkBegin,
-            CustomMinimumSize = new Vector2(0, 100)
+            CustomMinimumSize = new Vector2(0, 108),
+            ClipContents = true
         };
         box.AddChild(immovableScroll);
 
@@ -49,11 +52,11 @@ public partial class SceneArea : PanelContainer
         _immovableCards.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         immovableScroll.AddChild(_immovableCards);
 
-        box.AddChild(new HSeparator());
+        box.AddChild(new HSeparator { SelfModulate = GameTheme.Separator });
 
         // === 第二行：可拾取物品 ===
         var movableLabel = new Label { Text = "物品" };
-        movableLabel.AddThemeFontSizeOverride("font_size", 12);
+        GameTheme.StyleSectionLabel(movableLabel, GameTheme.AccentScene);
         box.AddChild(movableLabel);
 
         var movableScroll = new ScrollContainer
@@ -61,7 +64,8 @@ public partial class SceneArea : PanelContainer
             HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
             VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
         };
         box.AddChild(movableScroll);
 
@@ -124,10 +128,10 @@ public partial class SceneArea : PanelContainer
 
     private static void ClearChildren(Node node)
     {
-            foreach (var child in node.GetChildren().ToArray())
-            {
-                node.RemoveChild(child);
-                child.QueueFree();
-            }
+        foreach (var child in node.GetChildren().ToArray())
+        {
+            node.RemoveChild(child);
+            child.QueueFree();
+        }
     }
 }

@@ -10,6 +10,8 @@ public static class DataLoader
 	private static readonly JsonSerializerOptions Options = new()
 	{
 		PropertyNameCaseInsensitive = true,
+		ReadCommentHandling = JsonCommentHandling.Skip,
+		AllowTrailingCommas = true,
 		Converters = { new JsonStringEnumConverter() }
 	};
 
