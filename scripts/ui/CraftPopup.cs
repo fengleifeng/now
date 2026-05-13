@@ -1,4 +1,5 @@
 using Godot;
+using CardSurvival;
 using CardSurvival.Data;
 
 namespace CardSurvival.UI;

@@ -2,6 +2,8 @@ using Godot;
 using CardSurvival.Data;
 using CardSurvival.Game;
 
+namespace CardSurvival;
+
 /// <summary>
 /// 成就 Autoload：加载数据、订阅手牌增量，将判定与解锁委托给 <see cref="AchievementEngine"/>。
 /// </summary>

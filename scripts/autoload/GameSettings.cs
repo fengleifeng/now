@@ -5,6 +5,8 @@ using CardSurvival.Data;
 using CardSurvival.Game;
 using Godot;
 
+namespace CardSurvival;
+
 /// <summary>
 /// 全局游戏配置：默认读取 <c>res://data/game_settings.json</c>，若存在 <c>user://game_settings.json</c> 则覆盖。
 /// 菜单内修改会写入 user 路径。

@@ -6,6 +6,8 @@ using CardSurvival.Data;
 using CardSurvival.Game;
 using Godot;
 
+namespace CardSurvival;
+
 /// <summary>
 /// 国际化：从 <see cref="ContentPaths.GameStrings"/> 加载 TSV（key、zh_CN、en），注册到 <see cref="TranslationServer"/>。
 /// </summary>
