@@ -1,3 +1,17 @@
+// =============================================================================
+// effects.json — 状态效果（持续类 Buff/疾病/外伤等），由 EffectSystem 按回合处理
+// -----------------------------------------------------------------------------
+// Id / Name / Description    标识与 UI 文案
+// Type                       Disease 疾病；Buff 增益；Injury 外伤；Instant 瞬间
+// IsVisible                  是否显示在 UI（缺省为 true）
+// PerTurnEffects             每回合触发，字符串格式 "属性:值"，如 Health:-5、HungerRate:*1.5
+//                             支持 +N、-N、*N（乘在速率类上）
+// OnApplyEffects             获得效果当刻立即结算，格式同上
+// OnRemoveEffects             移除时触发，格式同上
+// DefaultDuration             持续回合数；-1 常表示持续至条件消失
+// CuredByTag / CuredByCard   可被带某标签或某 Id 的卡治愈/解除
+// TriggerCondition            逻辑用触发条件标识（与代码事件对应）
+// =============================================================================
 [
   {
     "Id": "injury",

@@ -1,3 +1,23 @@
+// =============================================================================
+// cards.json — 卡牌定义（Id 需全局唯一；与合成、探索、工程等处引用一致）
+// -----------------------------------------------------------------------------
+// Id / Name              唯一标识、显示名称
+// Type                   类型：Location 地点卡；Resource 资源；Creature 生物；
+//                         Tool 工具；Weapon 武器；Building 建筑；Status 状态；
+//                         Event 事件；Container 容器；Seed 种子等（见代码枚举）
+// Stack / MaxStack       当前堆叠数（模板多为1）、手牌/背包中该卡最大堆叠
+// Tags                   标签列表，用于合成 MatchByTag、效果判定、营养启发等
+// Durability             耐久，工具等会消耗；-1 表示无限
+// Description            卡牌说明文案（玩家可读）
+// IsDraggable            是否可拖拽（地点等常为 false）
+// IconPath               可选，立绘/图标 res:// 路径
+// ExplorePool            部分卡用：探索权重池
+// EatMinutes 等          可选，进食/喝水等操作耗时（游戏分钟）；0 表示用 game_settings 默认值
+// CombineMinutes         可选，作为合成产物出现时贡献的耗时（分钟）；多产物可相加；0 则用全局合成默认
+// FoodValue 等           进食/解渴/治疗等数值；BurnValue 燃烧值；ArmorValue 护甲
+// ToolPower               工具效率等级；Effects 使用效果字符串列表
+// ProteinValue / VitaminValue / CarbValue / BodyFatDelta  营养相关（0 可表示走标签默认）
+// =============================================================================
 [
   {"Id":"forest","Name":"森林","Type":"Location","Stack":1,"MaxStack":1,"Tags":["Location","Nature"],"Durability":-1,"Description":"茂密的森林，盛产木材和草药","IsDraggable":false,"ExplorePool":[]},
   {"Id":"lake","Name":"湖泊","Type":"Location","Stack":1,"MaxStack":1,"Tags":["Location","Water"],"Durability":-1,"Description":"宁静的湖泊，可以钓鱼和取水","IsDraggable":false,"ExplorePool":[]},
@@ -9,30 +29,30 @@
   {"Id":"rock","Name":"岩石","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Stone","Nature"],"Durability":-1,"Description":"坚硬的岩石，可以开采获得石头","IsDraggable":false},
   {"Id":"bush","Name":"灌木","Type":"Resource","Stack":1,"MaxStack":3,"Tags":["Plant","Nature","Berry"],"Durability":-1,"Description":"茂密的灌木丛，可能藏有浆果","IsDraggable":false},
 
-  {"Id":"wood","Name":"木头","Type":"Resource","Stack":1,"MaxStack":10,"Tags":["Wood","Material"],"Durability":-1,"Description":"基础建材，可生火或制作工具","BurnValue":3},
+  {"Id":"wood","Name":"木头","Type":"Resource","Stack":1,"MaxStack":10,"Tags":["Wood","Material"],"Durability":-1,"Description":"基础建材，可生火或制作工具","BurnValue":3,"CombineMinutes":8},
   {"Id":"stone","Name":"石头","Type":"Resource","Stack":1,"MaxStack":10,"Tags":["Stone","Material"],"Durability":-1,"Description":"坚硬的材料，制作工具的必需品"},
   {"Id":"stick","Name":"木棍","Type":"Resource","Stack":1,"MaxStack":10,"Tags":["Wood","Material"],"Durability":-1,"Description":"细长的木棍，可做简易工具","BurnValue":1},
   {"Id":"plank","Name":"木板","Type":"Resource","Stack":1,"MaxStack":8,"Tags":["Wood","Material"],"Durability":-1,"Description":"加工过的木板，建造高级建筑的材料","BurnValue":4},
   {"Id":"iron_ore","Name":"铁矿石","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Stone","Material","Metal"],"Durability":-1,"Description":"含铁的矿石，需要冶炼才能使用"},
-  {"Id":"iron_ingot","Name":"铁锭","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Material","Metal"],"Durability":-1,"Description":"冶炼后的铁，可制作高级工具"},
-  {"Id":"water","Name":"清水","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Water","Food"],"Durability":-1,"Description":"干净的饮用水，解渴必需品","ThirstValue":25},
+  {"Id":"iron_ingot","Name":"铁锭","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Material","Metal"],"Durability":-1,"Description":"冶炼后的铁，可制作高级工具","CombineMinutes":12},
+  {"Id":"water","Name":"清水","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Water","Food"],"Durability":-1,"Description":"干净的饮用水，解渴必需品","ThirstValue":25,"DrinkMinutes":3},
   {"Id":"flower","Name":"野花","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Plant"],"Durability":-1,"Description":"美丽的野花，闻起来让人心情愉悦","HealValue":2,"Effects":["sanity+5"]},
-  {"Id":"berry","Name":"浆果","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Food","Plant","Berry"],"Durability":-1,"Description":"野外常见的果实，少量充饥","FoodValue":15,"ThirstValue":5},
+  {"Id":"berry","Name":"浆果","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Food","Plant","Berry"],"Durability":-1,"Description":"野外常见的果实，少量充饥","FoodValue":15,"ThirstValue":5,"EatMinutes":4},
   {"Id":"herb","Name":"草药","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Plant","Medicine"],"Durability":-1,"Description":"具有治疗效果的植物","HealValue":20},
-  {"Id":"meat","Name":"生肉","Type":"Resource","Stack":1,"MaxStack":3,"Tags":["Food","Raw","Meat"],"Durability":-1,"Description":"未烹饪的肉，生吃可能生病","FoodValue":10},
-  {"Id":"cooked_meat","Name":"熟肉","Type":"Resource","Stack":1,"MaxStack":3,"Tags":["Food","Cooked","Meat"],"Durability":-1,"Description":"烤熟的肉，美味且营养丰富","FoodValue":35,"HealValue":5},
+  {"Id":"meat","Name":"生肉","Type":"Resource","Stack":1,"MaxStack":3,"Tags":["Food","Raw","Meat"],"Durability":-1,"Description":"未烹饪的肉，生吃可能生病","FoodValue":10,"EatMinutes":12},
+  {"Id":"cooked_meat","Name":"熟肉","Type":"Resource","Stack":1,"MaxStack":3,"Tags":["Food","Cooked","Meat"],"Durability":-1,"Description":"烤熟的肉，美味且营养丰富","FoodValue":35,"HealValue":5,"CombineMinutes":10,"EatMinutes":8},
   {"Id":"hide","Name":"兽皮","Type":"Resource","Stack":1,"MaxStack":5,"Tags":["Material","Cloth"],"Durability":-1,"Description":"动物的皮毛，可以制作物品"},
 
   {"Id":"rabbit","Name":"兔子","Type":"Creature","Stack":1,"MaxStack":1,"Tags":["Animal","Prey","Food"],"Durability":-1,"Description":"温顺的小动物，可以猎取肉和皮"},
   {"Id":"wolf","Name":"狼","Type":"Creature","Stack":1,"MaxStack":1,"Tags":["Animal","Danger"],"Durability":-1,"Description":"危险的掠食者，需要武器对付"},
-  {"Id":"fish","Name":"鱼","Type":"Creature","Stack":1,"MaxStack":3,"Tags":["Animal","Aquatic","Food","Raw"],"Durability":-1,"Description":"湖泊中的鱼，不错的食物来源"},
+  {"Id":"fish","Name":"鱼","Type":"Creature","Stack":1,"MaxStack":3,"Tags":["Animal","Aquatic","Food","Raw"],"Durability":-1,"Description":"湖泊中的鱼，不错的食物来源","FoodValue":12,"ProteinValue":8,"VitaminValue":2},
   {"Id":"snake","Name":"蛇","Type":"Creature","Stack":1,"MaxStack":1,"Tags":["Animal","Danger"],"Durability":-1,"Description":"有毒的蛇，被咬到会受伤"},
   {"Id":"bat","Name":"蝙蝠","Type":"Creature","Stack":1,"MaxStack":2,"Tags":["Animal","Danger"],"Durability":-1,"Description":"洞穴里的蝙蝠，虽然小但会咬人"},
 
-  {"Id":"axe","Name":"石斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Heavy"],"Durability":5,"Description":"基础工具，可伐木和战斗","ToolPower":2},
-  {"Id":"spear","Name":"长矛","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp"],"Durability":4,"Description":"比石斧更强力的武器","ToolPower":3},
-  {"Id":"stone_knife","Name":"石刀","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp"],"Durability":3,"Description":"轻便的切割工具，可处理猎物","ToolPower":1},
-  {"Id":"iron_axe","Name":"铁斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Heavy","Metal"],"Durability":12,"Description":"坚固的铁斧，效率和耐久远超石斧","ToolPower":5},
+  {"Id":"axe","Name":"石斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Heavy"],"Durability":5,"Description":"基础工具，可伐木和战斗","ToolPower":2,"CombineMinutes":20},
+  {"Id":"spear","Name":"长矛","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp"],"Durability":4,"Description":"比石斧更强力的武器","ToolPower":3,"CombineMinutes":20},
+  {"Id":"stone_knife","Name":"石刀","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp"],"Durability":3,"Description":"轻便的切割工具，可处理猎物","ToolPower":1,"CombineMinutes":15},
+  {"Id":"iron_axe","Name":"铁斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Heavy","Metal"],"Durability":12,"Description":"坚固的铁斧，效率和耐久远超石斧","ToolPower":5,"CombineMinutes":20},
 
   {"Id":"campfire","Name":"火堆","Type":"Building","Stack":1,"MaxStack":1,"Tags":["Fire","Shelter","Warm"],"Durability":3,"Description":"提供温暖和照明，可以烹饪食物"},
   {"Id":"trap","Name":"陷阱","Type":"Building","Stack":1,"MaxStack":1,"Tags":["Tool","Trap"],"Durability":2,"Description":"自动捕获经过的动物"},

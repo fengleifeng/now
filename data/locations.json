@@ -1,3 +1,19 @@
+// =============================================================================
+// locations.json — 地图地区：探索池、连通关系、环境资源上限与再生（见各字段）
+// -----------------------------------------------------------------------------
+// Id / Name / Icon / Description     地区标识、显示名、图标、叙事说明
+// ExplorePool                         默认季节用的探索随机池（卡牌 Id，重复即权重）
+// SpringPool…WinterPool               分季节探索池；某季节为空数组时回退到 ExplorePool
+// Connections                         可从本地区移动到的相邻地区 Id
+// SpecialEffect                       地区特殊逻辑标识（如 energy_bonus、wolf_danger）
+// ExploreCost                         探索基础精力消耗基数
+// EnvironmentResources                左侧「环境」栏固定资源（非探索掉落）
+//   CardId           对应 cards.json 中的卡牌 Id（如 tree、rock）
+//   Max              该地区该资源实例数量上限
+//   Initial          开局数量；省略则等于 Max（开局直接铺到上限）
+//   RegenPerDay      每日再生基数（可小数，小数累积满 1 补一张，不超过 Max）
+//   RegenMultiplier  再生倍率，实际日产 = RegenPerDay × RegenMultiplier
+// =============================================================================
 [
   {
     "Id":"forest",
@@ -11,7 +27,12 @@
     "WinterPool":["wood","wood","herb","rabbit","snake"],
     "Connections":["lake","mountain","plains"],
     "SpecialEffect":"",
-    "ExploreCost":10
+    "ExploreCost":10,
+    "EnvironmentResources":[
+      {"说明":"树木：环境区可砍伐对象，上限与每日再生见数值","CardId":"tree","Max":8,"Initial":3,"RegenPerDay":0.45,"RegenMultiplier":1},
+      {"说明":"灌木：浆果类来源之一","CardId":"bush","Max":6,"Initial":2,"RegenPerDay":0.35,"RegenMultiplier":1},
+      {"说明":"岩石：石材来源","CardId":"rock","Max":4,"Initial":1,"RegenPerDay":0.2,"RegenMultiplier":1}
+    ]
   },
   {
     "Id":"lake",
@@ -25,7 +46,11 @@
     "WinterPool":["fish","stone","herb","water"],
     "Connections":["forest"],
     "SpecialEffect":"energy_bonus",
-    "ExploreCost":8
+    "ExploreCost":8,
+    "EnvironmentResources":[
+      {"说明":"湖岸岩石","CardId":"rock","Max":6,"Initial":2,"RegenPerDay":0.22,"RegenMultiplier":1.1},
+      {"说明":"岸边灌木","CardId":"bush","Max":4,"Initial":1,"RegenPerDay":0.25,"RegenMultiplier":0.9}
+    ]
   },
   {
     "Id":"mountain",
@@ -39,7 +64,11 @@
     "WinterPool":["stone","stone","wolf","herb"],
     "Connections":["forest","cave"],
     "SpecialEffect":"wolf_danger",
-    "ExploreCost":12
+    "ExploreCost":12,
+    "EnvironmentResources":[
+      {"说明":"山地岩层，石材主产","CardId":"rock","Max":10,"Initial":3,"RegenPerDay":0.18,"RegenMultiplier":1.4},
+      {"说明":"稀疏林木","CardId":"tree","Max":4,"Initial":1,"RegenPerDay":0.12,"RegenMultiplier":0.7}
+    ]
   },
   {
     "Id":"plains",
@@ -53,7 +82,10 @@
     "WinterPool":["herb","rabbit","rabbit","wood"],
     "Connections":["forest"],
     "SpecialEffect":"easy_explore",
-    "ExploreCost":7
+    "ExploreCost":7,
+    "EnvironmentResources":[
+      {"说明":"平原灌丛为主的环境资源","CardId":"bush","Max":9,"Initial":3,"RegenPerDay":0.4,"RegenMultiplier":1.15}
+    ]
   },
   {
     "Id":"cave",
@@ -67,6 +99,9 @@
     "WinterPool":[],
     "Connections":["mountain"],
     "SpecialEffect":"constant_temp",
-    "ExploreCost":14
+    "ExploreCost":14,
+    "EnvironmentResources":[
+      {"说明":"洞壁矿脉/落石，石材再生偏慢但倍率较高","CardId":"rock","Max":8,"Initial":2,"RegenPerDay":0.15,"RegenMultiplier":1.5}
+    ]
   }
 ]
