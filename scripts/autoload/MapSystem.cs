@@ -1,5 +1,6 @@
 using Godot;
 using CardSurvival.Data;
+using CardSurvival.Game;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,7 +20,7 @@ public partial class MapSystem : Node
 
     public override void _Ready()
     {
-        var path = ProjectSettings.GlobalizePath("res://data/locations.json");
+        var path = ProjectSettings.GlobalizePath(ContentPaths.Locations);
         var locations = DataLoader.LoadLocations(path);
         foreach (var loc in locations)
         {

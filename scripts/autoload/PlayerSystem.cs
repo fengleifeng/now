@@ -270,6 +270,12 @@ public partial class PlayerSystem : Node
         return State.LearnedRecipes.Contains(recipeKey);
     }
 
+    public void IncrementLifetimeExplore()
+    {
+        State.Progression.IncrementExplore();
+        EmitSignal(SignalName.OnStatsChanged);
+    }
+
     // ===== 项目 =====
 
     public void AddProject(ProjectData projectData)

@@ -51,6 +51,7 @@
 
   {"Id":"axe","Name":"石斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Heavy"],"Durability":5,"Description":"基础工具，可伐木和战斗","ToolPower":2,"CombineMinutes":20},
   {"Id":"spear","Name":"长矛","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp"],"Durability":4,"Description":"比石斧更强力的武器","ToolPower":3,"CombineMinutes":20},
+  {"Id":"harpoon","Name":"鱼叉","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Aquatic"],"Durability":5,"Description":"带倒刺的叉尖，在浅水中叉鱼更顺手","ToolPower":3,"CombineMinutes":22},
   {"Id":"stone_knife","Name":"石刀","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp"],"Durability":3,"Description":"轻便的切割工具，可处理猎物","ToolPower":1,"CombineMinutes":15},
   {"Id":"iron_axe","Name":"铁斧","Type":"Tool","Stack":1,"MaxStack":1,"Tags":["Weapon","Tool","Sharp","Heavy","Metal"],"Durability":12,"Description":"坚固的铁斧，效率和耐久远超石斧","ToolPower":5,"CombineMinutes":20},
 

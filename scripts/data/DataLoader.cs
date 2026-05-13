@@ -49,4 +49,18 @@ public static class DataLoader
 		var json = File.ReadAllText(path);
 		return JsonSerializer.Deserialize<List<EffectData>>(json, Options) ?? new List<EffectData>();
 	}
+
+	public static List<SceneHandDanceRule> LoadSceneHandDances(string path)
+	{
+		if (!File.Exists(path)) return new List<SceneHandDanceRule>();
+		var json = File.ReadAllText(path);
+		return JsonSerializer.Deserialize<List<SceneHandDanceRule>>(json, Options) ?? new List<SceneHandDanceRule>();
+	}
+
+	public static List<AchievementDef> LoadAchievements(string path)
+	{
+		if (!File.Exists(path)) return new List<AchievementDef>();
+		var json = File.ReadAllText(path);
+		return JsonSerializer.Deserialize<List<AchievementDef>>(json, Options) ?? new List<AchievementDef>();
+	}
 }

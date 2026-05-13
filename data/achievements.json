@@ -1,0 +1,29 @@
+[
+  {
+    "Id": "gather_wood_2",
+    "Name": "拾柴",
+    "Description": "累计获得 2 张木头（进入手牌的堆叠数之和）。",
+    "ConditionType": "LifetimeHandGain",
+    "CardId": "wood",
+    "RequiredCount": 2,
+    "UnlockRecipeKeys": ["wood+wood", "campfire"]
+  },
+  {
+    "Id": "gather_wood_5",
+    "Name": "樵夫起手",
+    "Description": "累计获得 5 张木头。",
+    "ConditionType": "LifetimeHandGain",
+    "CardId": "wood",
+    "RequiredCount": 5,
+    "UnlockRecipeKeys": ["wood+stone", "axe"]
+  },
+  {
+    "Id": "explore_3",
+    "Name": "初探荒野",
+    "Description": "累计进行 3 次探索。",
+    "ConditionType": "LifetimeExplore",
+    "CardId": "",
+    "RequiredCount": 3,
+    "UnlockRecipeKeys": ["stone+wood", "spear"]
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "LocationId": "lake",
+    "ToolCardIds": ["spear", "harpoon"],
+    "EnergyCost": 6,
+    "TimeMinutes": 12,
+    "ResultCardId": "fish",
+    "ResultCount": 1,
+    "SuccessChance": 0.82,
+    "DurabilityCost": 1,
+    "LogSuccess": "你将刃尖探入水中，叉起一条鱼。",
+    "LogFail": "鱼挣脱了，什么也没捞到。",
+    "LogNoEnergy": "精力不足，无法在水中坚持叉鱼。"
+  }
+]

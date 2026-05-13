@@ -55,6 +55,7 @@ public class PlayerState
 	public List<string> LearnedRecipes { get; set; } = new();
 	public List<ProjectState> ActiveProjects { get; set; } = new();
 	public List<string> CompletedBuildings { get; set; } = new();
+	public PlayerProgression Progression { get; set; } = new();
 
 	// === 技能等级（新增） ===
 	public int GatherLevel { get; set; } = 1;     // 采集

@@ -1,5 +1,6 @@
 using Godot;
 using CardSurvival.Data;
+using CardSurvival.Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ public partial class EffectSystem : Node
 
     public override void _Ready()
     {
-        var path = ProjectSettings.GlobalizePath("res://data/effects.json");
+        var path = ProjectSettings.GlobalizePath(ContentPaths.Effects);
         var effects = DataLoader.LoadEffects(path);
         foreach (var e in effects)
             _effectDefs[e.Id] = e;

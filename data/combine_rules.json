@@ -33,6 +33,7 @@
 
   {"说明":"木 + 兽皮 → 帐篷","CardA":"wood","CardB":"hide","Results":["tent"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
   {"说明":"石 + 木 → 长矛","CardA":"stone","CardB":"wood","Results":["spear"],"Chance":0.8,"MatchByTag":false,"Ingredients":[]},
+  {"说明":"长矛 + 木头 → 鱼叉（木柄加固叉尖）","CardA":"spear","CardB":"wood","Results":["harpoon"],"Chance":1.0,"MatchByTag":false,"Ingredients":[]},
   {"说明":"双生肉易吃坏（概率生病）","CardA":"meat","CardB":"meat","Results":["sick"],"Chance":0.3,"MatchByTag":false,"Ingredients":[]},
   {"说明":"武器处理蛇身","CardA":"snake","CardB":"Weapon","Results":["meat"],"Chance":0.6,"MatchByTag":true,"Ingredients":[]},
 

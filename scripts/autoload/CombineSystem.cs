@@ -1,5 +1,6 @@
 using Godot;
 using CardSurvival.Data;
+using CardSurvival.Game;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,7 +29,7 @@ public partial class CombineSystem : Node
 
     public override void _Ready()
     {
-        var path = ProjectSettings.GlobalizePath("res://data/combine_rules.json");
+        var path = ProjectSettings.GlobalizePath(ContentPaths.CombineRules);
         _rules = DataLoader.LoadRules(path);
         _cardManager = GetNodeOrNull<CardManager>("/root/CardManager");
         _gameSettings = GetNodeOrNull<GameSettings>("/root/GameSettings");
@@ -89,10 +90,19 @@ public partial class CombineSystem : Node
         return _playerSystem;
     }
 
+    public bool IsRecipeUnlockedForAttempt(CombineRule rule) =>
+        RecipeUnlockPolicy.AllowsHandCombine(_gameSettings, GetPlayerSystem().State, GetRecipeKey(rule));
+
     public bool TryCombine(CardData a, CardData b)
     {
         var rule = FindRule(a, b);
         if (rule == null)
+        {
+            EmitSignal(SignalName.OnCombineFail, a.Id, b.Id);
+            return false;
+        }
+
+        if (!IsRecipeUnlockedForAttempt(rule))
         {
             EmitSignal(SignalName.OnCombineFail, a.Id, b.Id);
             return false;
@@ -104,7 +114,6 @@ public partial class CombineSystem : Node
             return false;
         }
 
-        LearnRecipesForSuccessfulCombine(rule);
         var results = rule.Results.ToArray();
         EmitSignal(SignalName.OnCombineSuccess, a.Id, b.Id, results, (double)GetSynthesisMinutes(rule));
         return true;
@@ -120,13 +129,18 @@ public partial class CombineSystem : Node
             return false;
         }
 
+        if (!IsRecipeUnlockedForAttempt(rule))
+        {
+            EmitSignal(SignalName.OnMultiCombineFail);
+            return false;
+        }
+
         if (_random.NextDouble() > GetAdjustedChance(rule))
         {
             EmitSignal(SignalName.OnMultiCombineFail);
             return false;
         }
 
-        LearnRecipesForSuccessfulCombine(rule);
         var ingredientIds = ingredients.Select(c => c.Id).ToArray();
         var results = rule.Results.ToArray();
         EmitSignal(SignalName.OnMultiCombineSuccess, ingredientIds, results, (double)GetSynthesisMinutes(rule));
@@ -234,7 +248,6 @@ public partial class CombineSystem : Node
             if (b != null) consumed.Add(b);
         }
 
-        LearnRuleAndResults(rule);
         return consumed;
     }
 
@@ -282,8 +295,6 @@ public partial class CombineSystem : Node
 
         return consumed;
     }
-
-    private void LearnRecipesForSuccessfulCombine(CombineRule rule) => LearnRuleAndResults(rule);
 
     private static bool HasIngredientsInHand(IReadOnlyList<string> required, List<CardData> hand)
     {

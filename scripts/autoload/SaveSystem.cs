@@ -148,6 +148,14 @@ public partial class SaveSystem : Node
         foreach (var id in state.LearnedRecipes)
             learned.Add(id);
 
+        var lifetimeHand = new Godot.Collections.Dictionary<string, Variant>();
+        foreach (var kv in state.Progression.LifetimeHandGains)
+            lifetimeHand[kv.Key] = kv.Value;
+
+        var unlockedAch = new Godot.Collections.Array();
+        foreach (var id in state.Progression.UnlockedAchievementIds)
+            unlockedAch.Add(id);
+
         var traits = new Godot.Collections.Array();
         foreach (var t in player.Traits)
             traits.Add(t.ToString());
@@ -195,6 +203,9 @@ public partial class SaveSystem : Node
             { "Projects", projects },
             { "Completed", completed },
             { "Learned", learned },
+            { "LifetimeHandGains", lifetimeHand },
+            { "LifetimeExploreCount", state.Progression.LifetimeExploreCount },
+            { "UnlockedAchievements", unlockedAch },
             { "GatherLevel", state.GatherLevel },
             { "HuntLevel", state.HuntLevel },
             { "CookLevel", state.CookLevel },
@@ -322,6 +333,20 @@ public partial class SaveSystem : Node
         if (data.ContainsKey("Learned"))
             foreach (var id in (Godot.Collections.Array)data["Learned"])
                 state.LearnedRecipes.Add((string)id);
+
+        state.Progression.LifetimeHandGains.Clear();
+        if (data.ContainsKey("LifetimeHandGains") && data["LifetimeHandGains"].VariantType == Variant.Type.Dictionary)
+        {
+            foreach (var kv in (Godot.Collections.Dictionary)data["LifetimeHandGains"])
+                state.Progression.LifetimeHandGains[kv.Key.ToString()] = (int)kv.Value;
+        }
+
+        state.Progression.LifetimeExploreCount = data.ContainsKey("LifetimeExploreCount") ? (int)data["LifetimeExploreCount"] : 0;
+
+        state.Progression.UnlockedAchievementIds.Clear();
+        if (data.ContainsKey("UnlockedAchievements"))
+            foreach (var id in (Godot.Collections.Array)data["UnlockedAchievements"])
+                state.Progression.UnlockedAchievementIds.Add((string)id);
 
         state.GatherLevel = GetInt(data, "GatherLevel", 1);
         state.HuntLevel = GetInt(data, "HuntLevel", 1);
