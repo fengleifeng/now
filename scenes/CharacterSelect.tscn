@@ -29,149 +29,183 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MenuPanel" type="PanelContainer" parent="CenterRoot"]
+[node name="SafeMargin" type="MarginContainer" parent="CenterRoot"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -340.0
-offset_top = -400.0
-offset_right = 340.0
-offset_bottom = 400.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="MainContainer" type="VBoxContainer" parent="CenterRoot/MenuPanel"]
+[node name="Center" type="CenterContainer" parent="CenterRoot/SafeMargin"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-alignment = 1
-separation = 16
 
-[node name="TitleLabel" type="Label" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="MenuPanel" type="PanelContainer" parent="CenterRoot/SafeMargin/Center"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 0)
+size_flags_horizontal = 4
+size_flags_vertical = 3
+
+[node name="Scroll" type="ScrollContainer" parent="CenterRoot/SafeMargin/Center/MenuPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="MainContainer" type="VBoxContainer" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
+theme_override_font_sizes/font_size = 32
 text = "选择你的特质"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
-theme_override_font_size = 32
-theme_override_color/font_color = Color(0.95, 0.9, 0.8, 1)
 
-[node name="DescriptionLabel" type="Label" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="DescriptionLabel" type="Label" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
 text = "选择2个特质来开始你的生存之旅"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
-theme_override_font_size = 16
-theme_override_color/font_color = Color(0.7, 0.7, 0.7, 1)
 
-[node name="Separator1" type="HSeparator" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="Separator1" type="HSeparator" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_color/color = Color(0.4, 0.35, 0.3, 1)
+theme_override_colors/separator = Color(0.4, 0.35, 0.3, 1)
 
-[node name="TraitsGrid" type="GridContainer" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="TraitsGrid" type="GridContainer" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 columns = 2
-separation = 10
 
-[node name="Trait1" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+[node name="Trait1" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "强壮\n\n携带重量+50%"
+custom_minimum_size = Vector2(0, 88)
+text = "强壮
 
-[node name="Trait2" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+携带重量+50%"
+autowrap_mode = 3
+
+[node name="Trait2" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "敏捷\n\n探索速度+20%"
+custom_minimum_size = Vector2(0, 88)
+text = "敏捷
 
-[node name="Trait3" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+探索速度+20%"
+autowrap_mode = 3
+
+[node name="Trait3" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "智慧\n\n合成成功率+10%"
+custom_minimum_size = Vector2(0, 88)
+text = "智慧
 
-[node name="Trait4" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+合成成功率+10%"
+autowrap_mode = 3
+
+[node name="Trait4" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "生存专家\n\n饥饿消耗-20%"
+custom_minimum_size = Vector2(0, 88)
+text = "生存专家
 
-[node name="Trait5" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+饥饿消耗-20%"
+autowrap_mode = 3
+
+[node name="Trait5" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "医者\n\n自我治疗效果+30%"
+custom_minimum_size = Vector2(0, 88)
+text = "医者
 
-[node name="Trait6" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+自我治疗效果+30%"
+autowrap_mode = 3
+
+[node name="Trait6" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "猎人\n\n狩猎成功率+15%"
+custom_minimum_size = Vector2(0, 88)
+text = "猎人
 
-[node name="Trait7" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+狩猎成功率+15%"
+autowrap_mode = 3
+
+[node name="Trait7" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
-autowrap_mode = 3
-text = "木匠\n\n建造速度+20%"
+custom_minimum_size = Vector2(0, 88)
+text = "木匠
 
-[node name="Trait8" type="Button" parent="CenterRoot/MenuPanel/MainContainer/TraitsGrid"]
+建造速度+20%"
+autowrap_mode = 3
+
+[node name="Trait8" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer/TraitsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 100)
+custom_minimum_size = Vector2(0, 88)
+text = "探险家
+
+解锁新区域几率+15%"
 autowrap_mode = 3
-text = "探险家\n\n解锁新区域几率+15%"
 
-[node name="Separator2" type="HSeparator" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="Separator2" type="HSeparator" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_color/color = Color(0.4, 0.35, 0.3, 1)
+theme_override_colors/separator = Color(0.4, 0.35, 0.3, 1)
 
-[node name="SelectedLabel" type="Label" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="SelectedLabel" type="Label" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "已选择: 0/2"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
-theme_override_font_size = 18
-theme_override_color/font_color = Color(0.8, 0.8, 0.8, 1)
 
-[node name="StartButton" type="Button" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="StartButton" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 48)
-alignment = 1
-autowrap_mode = 3
 text = "开始冒险"
+autowrap_mode = 3
+alignment = 1
 disabled = true
 
-[node name="BackButton" type="Button" parent="CenterRoot/MenuPanel/MainContainer"]
+[node name="BackButton" type="Button" parent="CenterRoot/SafeMargin/Center/MenuPanel/Scroll/MainContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 48)
-alignment = 1
-autowrap_mode = 3
 text = "返回"
+autowrap_mode = 3
+alignment = 1

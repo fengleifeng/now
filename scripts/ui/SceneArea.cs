@@ -2,6 +2,7 @@ using Godot;
 using CardSurvival.Data;
 using System.Collections.Generic;
 using CardSurvival;
+using CardSurvival.Game;
 
 namespace CardSurvival.UI;
 
@@ -14,15 +15,19 @@ public partial class SceneArea : PanelContainer
 
     private HBoxContainer _immovableCards = null!; // 地点、永久建筑（不可移动）
     private HBoxContainer _movableCards = null!;   // 可拾取物品
+    private ScrollContainer _immovableScroll = null!;
     private MapSystem _map = null!;
     private TimeSystem _time = null!;
+    private PlayerSystem _player = null!;
     private Label _sceneSectionLabel = null!;
     private Label _itemsSectionLabel = null!;
 
     public override void _Ready()
     {
-        _map = GetNode<MapSystem>("/root/MapSystem");
-        _time = GetNode<TimeSystem>("/root/TimeSystem");
+        var services = GameServices.From(this);
+        _map = services.Map;
+        _time = services.Time;
+        _player = services.Player;
 
         GameTheme.ApplyPanelSoft(this, GameTheme.PanelMain);
 
@@ -46,21 +51,20 @@ public partial class SceneArea : PanelContainer
         GameTheme.StyleSectionLabel(_sceneSectionLabel, GameTheme.AccentScene);
         box.AddChild(_sceneSectionLabel);
 
-        var immovableScroll = new ScrollContainer
+        _immovableScroll = new ScrollContainer
         {
             HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
             VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ShrinkBegin,
-            CustomMinimumSize = new Vector2(0, 172),
             ClipContents = true
         };
-        box.AddChild(immovableScroll);
+        box.AddChild(_immovableScroll);
 
         _immovableCards = new HBoxContainer();
         _immovableCards.AddThemeConstantOverride("separation", 8);
         _immovableCards.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        immovableScroll.AddChild(_immovableCards);
+        _immovableScroll.AddChild(_immovableCards);
 
         box.AddChild(new HSeparator { SelfModulate = GameTheme.Separator });
 
@@ -98,6 +102,11 @@ public partial class SceneArea : PanelContainer
     {
         _sceneSectionLabel.Text = I18n.T("ui.scene");
         _itemsSectionLabel.Text = I18n.T("ui.scene_items");
+    }
+
+    public void ApplyResponsiveHeights()
+    {
+        _immovableScroll.CustomMinimumSize = new Vector2(0, UiLayout.Scaled(this, 172));
     }
 
     /// <summary>
@@ -177,7 +186,8 @@ public partial class SceneArea : PanelContainer
         desc.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
         col.AddChild(desc);
 
-        var exploreCost = _time.CurrentWeather == WeatherType.Foggy ? 15 : 10;
+        var exploreCost = SurvivalReadModel.GetExploreEnergyCost(
+            GameServices.From(this), meta);
         var actions = new HBoxContainer();
         actions.AddThemeConstantOverride("separation", 8);
         actions.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;

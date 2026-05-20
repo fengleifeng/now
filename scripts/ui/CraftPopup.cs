@@ -35,8 +35,9 @@ public partial class CraftPopup : Control
 
 	public override void _Ready()
 	{
-		_cardManager = GetNode<CardManager>("/root/CardManager");
-		_combineSystem = GetNode<CombineSystem>("/root/CombineSystem");
+		var services = GameServices.From(this);
+		_cardManager = services.Cards;
+		_combineSystem = services.Combine;
 		SetAnchorsPreset(LayoutPreset.FullRect);
 		MouseFilter = MouseFilterEnum.Stop;
 		BuildUI();
@@ -77,7 +78,8 @@ public partial class CraftPopup : Control
 		var center = ModalUi.AddCenterLayer(this);
 
 		var shell = new PanelContainer();
-		shell.CustomMinimumSize = new Vector2(560, 520);
+		UiLayout.ClampPanelMinSize(shell, new Vector2(560, 520));
+		UiLayout.BindResponsive(this, () => UiLayout.ClampPanelMinSize(shell, new Vector2(560, 520)));
 		GameTheme.ApplyModalPanel(shell);
 		center.AddChild(shell);
 

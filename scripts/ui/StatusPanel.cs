@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using CardSurvival.Data;
 using CardSurvival;
+using CardSurvival.Game;
 
 namespace CardSurvival.UI;
 
@@ -18,6 +19,7 @@ public partial class StatusPanel : PanelContainer
 	private ProgressBar _thirstBar = null!;
 	private ProgressBar _energyBar = null!;
 	private ProgressBar _sanityBar = null!;
+	private ProgressBar _immunityBar = null!;
 	private ProgressBar _proteinBar = null!;
 	private ProgressBar _vitaminsBar = null!;
 	private ProgressBar _carbBar = null!;
@@ -27,6 +29,7 @@ public partial class StatusPanel : PanelContainer
 	private Label _thirstValue = null!;
 	private Label _energyValue = null!;
 	private Label _sanityValue = null!;
+	private Label _immunityValue = null!;
 	private Label _proteinValue = null!;
 	private Label _vitaminsValue = null!;
 	private Label _carbValue = null!;
@@ -54,13 +57,13 @@ public partial class StatusPanel : PanelContainer
 
 	public override void _Ready()
 	{
-		_player = GetNode<PlayerSystem>("/root/PlayerSystem");
-		_time = GetNode<TimeSystem>("/root/TimeSystem");
-		_map = GetNode<MapSystem>("/root/MapSystem");
-		_cards = GetNode<CardManager>("/root/CardManager");
-		_effects = GetNode<EffectSystem>("/root/EffectSystem");
+		var services = GameServices.From(this);
+		_player = services.Player;
+		_time = services.Time;
+		_map = services.Map;
+		_cards = services.Cards;
+		_effects = services.Effects;
 
-		CustomMinimumSize = new Vector2(200, 0);
 		SizeFlagsVertical = SizeFlags.ExpandFill;
 		GameTheme.ApplyPanel(this, GameTheme.PanelSidebar);
 
@@ -100,6 +103,7 @@ public partial class StatusPanel : PanelContainer
 		AddStatRow(content, "ui.stat.thirst", out _thirstBar, out _thirstValue, false, false);
 		AddStatRow(content, "ui.stat.energy", out _energyBar, out _energyValue, true, false);
 		AddStatRow(content, "ui.stat.sanity", out _sanityBar, out _sanityValue, false, true);
+		AddStatRow(content, "ui.stat.immunity", out _immunityBar, out _immunityValue, false, false);
 		content.AddChild(MakeSeparator());
 		_nutHdrLabel = new Label();
 		GameTheme.StyleSectionLabel(_nutHdrLabel, GameTheme.TextMuted);
@@ -246,6 +250,7 @@ public partial class StatusPanel : PanelContainer
 		SetBar(_thirstBar, _thirstValue, _player.State.Thirst, _player.State.MaxThirst);
 		SetBar(_energyBar, _energyValue, _player.State.Energy, _player.State.MaxEnergy);
 		SetBar(_sanityBar, _sanityValue, _player.State.Sanity, _player.State.MaxSanity);
+		SetBar(_immunityBar, _immunityValue, _player.State.Immunity, _player.State.MaxImmunity);
 		SetNutrientBar(_proteinBar, _proteinValue, _player.State.Protein);
 		SetNutrientBar(_vitaminsBar, _vitaminsValue, _player.State.Vitamins);
 		SetNutrientBar(_carbBar, _carbValue, _player.State.Carbohydrate);
@@ -282,11 +287,9 @@ public partial class StatusPanel : PanelContainer
 
 		_effectLabel.Text = parts.Count > 0 ? string.Join(" · ", parts) : I18n.T("ui.effects_ok");
 
-		var ritualOk = _time.IsNight()
-		               && _cards.HasCardInHand("campfire")
-		               && _cards.HasCardInHand("herb")
-		               && (diseases.Count > 0 || _player.State.Sanity < 50);
-		_ritualBtn.Visible = ritualOk;
+		_ritualBtn.Visible = SurvivalReadModel.ShouldOfferNightRitual(
+			GameServices.From(this));
+		_restBtn.Disabled = !SurvivalReadModel.CanRest(_player);
 		_sharpenBtn.Disabled = _player.State.Energy < 8 || !_cards.CanSharpenToolInHand();
 	}
 

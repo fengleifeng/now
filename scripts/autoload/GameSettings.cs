@@ -161,7 +161,12 @@ public partial class GameSettings : Node
 		["DropToScene"] = 10f,
 		["SceneHandDance"] = 12f,
 		["BuildProjectStep"] = 20f,
-		["CombineFail"] = 5f
+		["CombineFail"] = 5f,
+		["Explore"] = 72f,
+		["Rest"] = 173f,
+		["Move"] = 144f,
+		["Sharpen"] = 29f,
+		["NightRitual"] = 72f
 	};
 
 	public void Save()

@@ -44,7 +44,8 @@ public partial class MenuPopup : Control
 		var center = ModalUi.AddCenterLayer(this);
 
 		var shell = new PanelContainer();
-		shell.CustomMinimumSize = new Vector2(300, 380);
+		UiLayout.ClampPanelMinSize(shell, new Vector2(300, 380));
+		UiLayout.BindResponsive(this, () => UiLayout.ClampPanelMinSize(shell, new Vector2(300, 380)));
 		GameTheme.ApplyModalPanel(shell);
 		center.AddChild(shell);
 

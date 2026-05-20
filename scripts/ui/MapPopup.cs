@@ -41,7 +41,8 @@ public partial class MapPopup : Control
 		var center = ModalUi.AddCenterLayer(this);
 
 		var shell = new PanelContainer();
-		shell.CustomMinimumSize = new Vector2(500, 430);
+		UiLayout.ClampPanelMinSize(shell, new Vector2(500, 430));
+		UiLayout.BindResponsive(this, () => UiLayout.ClampPanelMinSize(shell, new Vector2(500, 430)));
 		GameTheme.ApplyModalPanel(shell);
 		center.AddChild(shell);
 

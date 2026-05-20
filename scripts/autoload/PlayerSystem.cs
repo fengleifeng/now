@@ -1,6 +1,6 @@
 using Godot;
 using CardSurvival.Data;
-using CardSurvival.UI;
+using CardSurvival.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +51,32 @@ public partial class PlayerSystem : Node
         else if (State.Protein > 60 && State.Hunger > 40)
             State.BodyFatIndex = Math.Max(8, State.BodyFatIndex - 1);
         EmitSignal(SignalName.OnStatsChanged);
+    }
+
+    /// <summary>
+    /// 饱食/口渴枯竭时的生存惩罚：让「不吃饭、不喝水」最终威胁生命。
+    /// 在每日时间结算时由 TimeSystem 调用。
+    /// </summary>
+    public void TickVitalPenalties()
+    {
+        if (State.Health <= 0)
+            return;
+
+        if (State.Hunger <= 0)
+        {
+            TakeDamage(2);
+            UpdateSanity(-2);
+        }
+        else if (State.Hunger < 15)
+            UpdateSanity(-1);
+
+        if (State.Thirst <= 0)
+        {
+            TakeDamage(2);
+            ConsumeEnergy(3);
+        }
+        else if (State.Thirst < 15)
+            ConsumeEnergy(1);
     }
 
     /// <summary>进食后根据卡牌或标签启发增加营养。</summary>
@@ -110,6 +136,7 @@ public partial class PlayerSystem : Node
         State.BuildSpeed = 1f;
         State.DiscoverBonus = 0f;
         State.MoveEnergyCostMultiplier = 1f;
+        State.ExploreSpeed = 1f;
         State.MaxWeight = 50;
     }
 
@@ -149,6 +176,7 @@ public partial class PlayerSystem : Node
                     break;
                 case CharacterTrait.Agile:
                     State.MoveEnergyCostMultiplier = 0.8f;
+                    State.ExploreSpeed = 1.2f;
                     break;
                 case CharacterTrait.Carpenter:
                     State.BuildSpeed = State.BuildSpeed * 1.2f;

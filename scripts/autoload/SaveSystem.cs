@@ -1,6 +1,6 @@
 using Godot;
 using CardSurvival.Data;
-using CardSurvival.UI;
+using CardSurvival.Domain;
 using CardSurvival;
 using System;
 using System.Collections.Generic;

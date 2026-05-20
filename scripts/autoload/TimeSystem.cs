@@ -101,6 +101,7 @@ public partial class TimeSystem : Node
             playerSystem.ConsumeHunger(10);
             playerSystem.ConsumeThirst(12);
             playerSystem.TickNutritionDaily();
+            playerSystem.TickVitalPenalties();
 
             // 温度影响
             ApplyTemperatureEffect();

@@ -56,6 +56,31 @@ public partial class EffectSystem : Node
     public EffectData? GetDefinition(string effectId) =>
         _effectDefs.TryGetValue(effectId, out var def) ? def : null;
 
+    /// <summary>
+    /// 卡牌瞬间效果（cards.json 的 Effects 字段，如 sanity+5、cure:poison）。
+    /// </summary>
+    public void ApplyInstantCardEffects(IEnumerable<string> rawEffects)
+    {
+        var normalized = new List<string>();
+        foreach (var raw in rawEffects)
+        {
+            if (raw.StartsWith("cure:", StringComparison.OrdinalIgnoreCase))
+            {
+                var id = raw["cure:".Length..].Trim();
+                if (!string.IsNullOrEmpty(id))
+                    RemoveEffect(id);
+                continue;
+            }
+
+            var fmt = CardInstantEffectApplicator.NormalizeEffectString(raw);
+            if (fmt != null)
+                normalized.Add(fmt);
+        }
+
+        if (normalized.Count > 0)
+            ApplyEffectStrings(normalized, 1);
+    }
+
     /// <summary> 添加一个效果到玩家身上 </summary>
     public void AddEffect(string effectId, int intensity = 1, int? duration = null)
     {

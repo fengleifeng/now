@@ -32,7 +32,8 @@ public partial class CardActionPopup : Control
 		var center = ModalUi.AddCenterLayer(this);
 
 		var shell = new PanelContainer();
-		shell.CustomMinimumSize = new Vector2(380, 320);
+		UiLayout.ClampPanelMinSize(shell, new Vector2(380, 320));
+		UiLayout.BindResponsive(this, () => UiLayout.ClampPanelMinSize(shell, new Vector2(380, 320)));
 		GameTheme.ApplyModalPanel(shell);
 		center.AddChild(shell);
 
@@ -93,15 +94,12 @@ public partial class CardActionPopup : Control
 		icon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
 		icon.TextureFilter = CanvasItem.TextureFilterEnum.Linear;
 		icon.Visible = false;
-		if (!string.IsNullOrWhiteSpace(_card.IconPath))
+		var tex = CardArtCatalog.LoadIcon(_card);
+		if (tex != null)
 		{
-			var tex = ResourceLoader.Load<Texture2D>(_card.IconPath);
-			if (tex != null)
-			{
-				icon.Texture = tex;
-				icon.Visible = true;
-				glyph.Visible = false;
-			}
+			icon.Texture = tex;
+			icon.Visible = true;
+			glyph.Visible = false;
 		}
 
 		stack.AddChild(icon);

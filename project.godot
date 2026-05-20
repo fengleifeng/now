@@ -24,6 +24,7 @@ locale/fallback="zh_CN"
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [autoload]
 
@@ -37,6 +38,7 @@ TimeSystem="*res://scripts/autoload/TimeSystem.cs"
 EffectSystem="*res://scripts/autoload/EffectSystem.cs"
 SaveSystem="*res://scripts/autoload/SaveSystem.cs"
 AchievementSystem="*res://scripts/autoload/AchievementSystem.cs"
+GameServices="*res://scripts/autoload/GameServices.cs"
 
 [dotnet]
 

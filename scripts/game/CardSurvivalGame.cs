@@ -9,8 +9,8 @@ using Godot;
 namespace CardSurvival.Game;
 
 /// <summary>
-/// 《卡牌生存》式核心：所有生存/探索/移动/休息/仪式/合成结果落点逻辑集中在此类，
-/// UI 层（GameRoot）只负责布局、弹窗与把日志写进 RichTextLabel。
+/// 游戏核心循环：玩家通过卡牌与场景「行为」消耗时间/精力，改变饱食、口渴、生命、营养、免疫等状态，
+/// 从而更好地活下去。规则计算见 <see cref="SurvivalRules"/>，UI 只负责展示与输入。
 /// </summary>
 public sealed class CardSurvivalGame
 {
@@ -40,6 +40,10 @@ public sealed class CardSurvivalGame
 	private void CardOpTime(string key) => _h.Settings.AdvanceTimeForActionMinutes(_h.Time, key);
 
 	private void CardOpTime(string key, CardData card) => _h.Settings.AdvanceTimeForActionMinutes(_h.Time, key, card);
+
+	/// <summary>宏观行为（探索/休息/移动等）推进游戏时间。</summary>
+	private void AdvanceMacroTime(string settingsKey) =>
+		_h.Time.AdvanceTime(SurviveTime.MinutesToDayFraction(_h.Settings.GetDefaultActionMinutes(settingsKey)));
 
 	public void AdvanceCombineFailTime()
 	{
@@ -89,7 +93,11 @@ public sealed class CardSurvivalGame
 		var loc = _h.Map.GetCurrentLocation();
 		if (loc == null) return;
 
-		var exploreCost = _h.Time.CurrentWeather == WeatherType.Foggy ? 15 : 10;
+		var exploreCost = SurvivalRules.GetExploreEnergyCost(
+			loc,
+			_h.Time.CurrentWeather,
+			_h.Player.State,
+			_h.Player.GetSkillBonus("explore"));
 		if (_h.Player.State.Energy < exploreCost)
 		{
 			_h.Log(I18n.T("log.explore_no_energy"));
@@ -97,7 +105,7 @@ public sealed class CardSurvivalGame
 		}
 
 		_h.Player.ConsumeEnergy(exploreCost);
-		_h.Time.AdvanceTime(0.05f);
+		AdvanceMacroTime("Explore");
 
 		var pool = loc.GetExplorePoolForSeason(_h.Time.CurrentSeason);
 		var found = ExploreFromPool(pool);
@@ -133,41 +141,27 @@ public sealed class CardSurvivalGame
 			return;
 		}
 
-		if (_h.Player.State.Hunger < 10 || _h.Player.State.Thirst < 10)
+		if (!SurvivalRules.CanRest(_h.Player.State))
 		{
 			_h.Log(I18n.T("log.rest_hungry"));
 			return;
 		}
 
-		int energyRestore = 20;
-		var shelterKey = "shelter.wild";
-		if (_h.Player.HasCompletedBuilding("stone_house"))
-		{
-			energyRestore = 60;
-			shelterKey = "shelter.stone_house";
-		}
-		else if (_h.Player.HasCompletedBuilding("house"))
-		{
-			energyRestore = 45;
-			shelterKey = "shelter.house";
-		}
-		else if (_h.Player.HasCompletedBuilding("tent") || _h.Cards.GetPlayableHand().Any(c => c.Id == "tent"))
-		{
-			energyRestore = 30;
-			shelterKey = "shelter.tent";
-		}
-
-		var timePassed = 0.12f;
-		if (_h.Time.IsNight())
-		{
-			timePassed = 0.20f;
-			energyRestore = (int)(energyRestore * 1.5f);
-		}
+		var stone = _h.Player.HasCompletedBuilding("stone_house");
+		var house = _h.Player.HasCompletedBuilding("house");
+		var tent = _h.Player.HasCompletedBuilding("tent") || _h.Cards.GetPlayableHand().Any(c => c.Id == "tent");
+		var shelterBase = SurvivalRules.GetShelterRestEnergy(stone, house, tent);
+		var isNight = _h.Time.IsNight();
+		var energyRestore = SurvivalRules.GetRestEnergyGain(
+			shelterBase,
+			isNight,
+			_h.Time.GetEnergyRestoreRate());
+		var shelterKey = SurvivalRules.GetShelterMessageKey(stone, house, tent);
 
 		_h.Player.RestoreEnergy(energyRestore);
 		_h.Player.ConsumeHunger(5);
 		_h.Player.ConsumeThirst(3);
-		_h.Time.AdvanceTime(timePassed);
+		AdvanceMacroTime("Rest");
 		_h.Log(I18n.Tf("log.rest_fmt", I18n.T(shelterKey), energyRestore));
 		_h.RequestUiRefresh();
 	}
@@ -188,7 +182,7 @@ public sealed class CardSurvivalGame
 		}
 
 		_h.Player.ConsumeEnergy(cost);
-		_h.Time.AdvanceTime(0.02f);
+		AdvanceMacroTime("Sharpen");
 		_h.Log(I18n.T("log.sharpen_ok"));
 		_h.RequestUiRefresh();
 	}
@@ -218,7 +212,7 @@ public sealed class CardSurvivalGame
 		if (herb == null) return;
 
 		_h.Cards.ConsumeCardFromHand(herb, "ritual");
-		_h.Time.AdvanceTime(0.05f);
+		AdvanceMacroTime("NightRitual");
 		_h.Player.ConsumeHunger(3);
 		if (hasDisease)
 		{
@@ -242,7 +236,7 @@ public sealed class CardSurvivalGame
 			return;
 		}
 
-        var cost = Math.Max(1, (int)MathF.Round(15 * _h.Player.State.MoveEnergyCostMultiplier * _h.Player.GetBodyFatMoveMultiplier()));
+		var cost = SurvivalRules.GetMoveEnergyCost(_h.Player.State);
 		if (_h.Player.State.Energy < cost)
 		{
 			_h.Log(I18n.T("log.move_no_energy"));
@@ -252,7 +246,7 @@ public sealed class CardSurvivalGame
 		_h.Player.ConsumeEnergy(cost);
 		_h.Player.ConsumeHunger(3);
 		_h.Player.ConsumeThirst(3);
-		_h.Time.AdvanceTime(0.10f);
+		AdvanceMacroTime("Move");
 		_h.Map.MoveToLocation(id);
 		_h.Player.State.CurrentLocation = id;
 		_h.Log(I18n.Tf("log.move_fmt", _h.Map.GetLocation(id)?.Name ?? id));

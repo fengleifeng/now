@@ -1,11 +1,15 @@
-// scripts/ui/MainMenu.cs
 using Godot;
-using CardSurvival;
+using CardSurvival.Core;
+using CardSurvival.UI.Menu;
 
 namespace CardSurvival.UI;
 
+/// <summary>
+/// 主菜单场景：负责按钮绑定、文案与场景跳转，不直接散落 GetNode 路径。
+/// </summary>
 public partial class MainMenu : Control
 {
+	private GameServices _services = null!;
 	private Button _startButton = null!;
 	private Button _traitModeButton = null!;
 	private Button _continueButton = null!;
@@ -13,11 +17,13 @@ public partial class MainMenu : Control
 	private Button _quitButton = null!;
 	private Label _titleLabel = null!;
 
+	/// <summary>初始化服务引用、控件、样式与响应式布局。</summary>
 	public override void _Ready()
 	{
-		GetNode<GameSettings>("/root/GameSettings").Reload();
+		_services = GameServices.From(this);
+		_services.Settings.Reload();
 
-		var mainVBox = ResolveMainMenuVBox();
+		var mainVBox = MenuScenePaths.ResolveMainMenuVBox(this);
 		_titleLabel = mainVBox.GetNode<Label>("TitleLabel");
 		_startButton = mainVBox.GetNode<Button>("StartButton");
 		_traitModeButton = mainVBox.GetNode<Button>("TraitModeButton");
@@ -25,16 +31,38 @@ public partial class MainMenu : Control
 		_settingsButton = mainVBox.GetNode<Button>("SettingsButton");
 		_quitButton = mainVBox.GetNode<Button>("QuitButton");
 
-		if (TryGetMenuPanel(out var menuPanel))
-		{
-			GameTheme.ApplyModalPanel(menuPanel);
-			const int pad = 22;
-			menuPanel.AddThemeConstantOverride("margin_left", pad);
-			menuPanel.AddThemeConstantOverride("margin_top", pad);
-			menuPanel.AddThemeConstantOverride("margin_right", pad);
-			menuPanel.AddThemeConstantOverride("margin_bottom", pad);
-		}
+		ApplyPanelChrome();
+		WireButtons();
+		_continueButton.Disabled = !_services.Save.HasSaveFile();
+		ApplyMenuTexts();
+		I18n.LocaleChanged += ApplyMenuTexts;
+		UiLayout.BindResponsive(this, ApplyMenuLayout);
+	}
 
+	/// <summary>取消国际化订阅。</summary>
+	public override void _ExitTree()
+	{
+		I18n.LocaleChanged -= ApplyMenuTexts;
+		base._ExitTree();
+	}
+
+	/// <summary>应用菜单面板主题与内边距。</summary>
+	private void ApplyPanelChrome()
+	{
+		if (!MenuScenePaths.TryGetMainMenuPanel(this, out var menuPanel))
+			return;
+
+		GameTheme.ApplyModalPanel(menuPanel);
+		const int pad = 22;
+		menuPanel.AddThemeConstantOverride("margin_left", pad);
+		menuPanel.AddThemeConstantOverride("margin_top", pad);
+		menuPanel.AddThemeConstantOverride("margin_right", pad);
+		menuPanel.AddThemeConstantOverride("margin_bottom", pad);
+	}
+
+	/// <summary>连接各按钮的 Pressed 事件。</summary>
+	private void WireButtons()
+	{
 		foreach (var b in new[] { _startButton, _traitModeButton, _continueButton, _settingsButton, _quitButton })
 			GameTheme.StyleSidebarButton(b);
 
@@ -43,40 +71,19 @@ public partial class MainMenu : Control
 		_continueButton.Pressed += OnContinuePressed;
 		_settingsButton.Pressed += OnSettingsPressed;
 		_quitButton.Pressed += OnQuitPressed;
-
-		var saveSystem = GetNode<SaveSystem>("/root/SaveSystem");
-		_continueButton.Disabled = !saveSystem.HasSaveFile();
-
-		ApplyMenuTexts();
-		I18n.LocaleChanged += ApplyMenuTexts;
 	}
 
-	public override void _ExitTree()
+	/// <summary>按视口宽度调整菜单面板最小宽度。</summary>
+	private void ApplyMenuLayout()
 	{
-		I18n.LocaleChanged -= ApplyMenuTexts;
-		base._ExitTree();
+		if (!MenuScenePaths.TryGetMainMenuPanel(this, out var panel))
+			return;
+		var vp = UiLayout.ViewportSize(this);
+		var w = Mathf.Min(UiLayout.Scaled(this, 420), vp.X - 40f);
+		panel.CustomMinimumSize = new Vector2(Mathf.Max(260f, w), 0);
 	}
 
-	/// <summary>场景可能为 CenterRoot/MenuPanel/MainContainer（推荐）或旧版 CenterRoot/MainContainer。</summary>
-	private VBoxContainer ResolveMainMenuVBox()
-	{
-		if (HasNode("CenterRoot/MenuPanel/MainContainer"))
-			return GetNode<VBoxContainer>("CenterRoot/MenuPanel/MainContainer");
-		return GetNode<VBoxContainer>("CenterRoot/MainContainer");
-	}
-
-	private bool TryGetMenuPanel(out PanelContainer panel)
-	{
-		if (HasNode("CenterRoot/MenuPanel") && GetNode("CenterRoot/MenuPanel") is PanelContainer p)
-		{
-			panel = p;
-			return true;
-		}
-
-		panel = null!;
-		return false;
-	}
-
+	/// <summary>刷新所有菜单文案（语言切换时复用）。</summary>
 	private void ApplyMenuTexts()
 	{
 		_titleLabel.Text = I18n.T("menu.game_title");
@@ -87,33 +94,32 @@ public partial class MainMenu : Control
 		_quitButton.Text = I18n.T("menu.quit");
 	}
 
-	/// <summary>默认幸存者：不选特质，营养为 PlayerState 默认值，直接进入游戏。</summary>
+	/// <summary>默认开局：无特质，直接进入游戏。</summary>
 	private void OnStartPressed()
 	{
-		GetNode<PlayerSystem>("/root/PlayerSystem").BeginNewGameWithDefaults();
-		GetTree().ChangeSceneToFile("res://scenes/GameRoot.tscn");
+		_services.Player.BeginNewGameWithDefaults();
+		GetTree().ChangeSceneToFile(ScenePaths.GameRoot);
 	}
 
-	/// <summary>可选一条特质；仍可不选即以默认营养开局。</summary>
+	/// <summary>进入特质选择页。</summary>
 	private void OnTraitModePressed()
 	{
-		GetNode<PlayerSystem>("/root/PlayerSystem").ResetState();
-		GetTree().ChangeSceneToFile("res://scenes/CharacterSelect.tscn");
+		_services.Player.ResetState();
+		GetTree().ChangeSceneToFile(ScenePaths.CharacterSelect);
 	}
 
+	/// <summary>请求读档并进入游戏。</summary>
 	private void OnContinuePressed()
 	{
-		GetNode<PlayerSystem>("/root/PlayerSystem").RequestLoadSave();
-		GetTree().ChangeSceneToFile("res://scenes/GameRoot.tscn");
+		_services.Player.RequestLoadSave();
+		GetTree().ChangeSceneToFile(ScenePaths.GameRoot);
 	}
 
-	private void OnSettingsPressed()
-	{
+	/// <summary>设置按钮占位（待实现设置界面）。</summary>
+	private void OnSettingsPressed() =>
 		GD.Print("[MainMenu] Settings clicked");
-	}
 
-	private void OnQuitPressed()
-	{
+	/// <summary>退出应用。</summary>
+	private void OnQuitPressed() =>
 		GetTree().Quit();
-	}
 }

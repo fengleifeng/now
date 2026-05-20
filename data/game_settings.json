@@ -32,6 +32,11 @@
     "DropToScene": 10,
     "SceneHandDance": 12,
     "BuildProjectStep": 20,
-    "CombineFail": 5
+    "CombineFail": 5,
+    "Explore": 72,
+    "Rest": 173,
+    "Move": 144,
+    "Sharpen": 29,
+    "NightRitual": 72
   }
 }

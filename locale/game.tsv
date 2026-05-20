@@ -36,6 +36,7 @@ ui.stat.hunger	饱食	Hunger
 ui.stat.thirst	口渴	Thirst
 ui.stat.energy	精力	Energy
 ui.stat.sanity	精神	Sanity
+ui.stat.immunity	免疫	Immunity
 ui.stat.protein	蛋白质	Protein
 ui.stat.vitamins	维生素	Vitamins
 ui.stat.carb	碳水	Carbs
@@ -187,6 +188,14 @@ log.wolf_repelled	[color=green]你赶走了野兽。[/color]	[color=green]You dr
 log.wolf_hit	[color=orange]野兽袭击，生命 -15，可能受伤。[/color]	[color=orange]Beast attack, health -15, may be injured.[/color]
 log.storm_safe	[color=cyan]暴风雨来了，但庇护所保护了你。[/color]	[color=cyan]Storm — shelter protected you.[/color]
 log.storm_cold	[color=cyan]暴风雨来袭，温度 -5，可能感冒。[/color]	[color=cyan]Storm — temp -5, risk of cold.[/color]
+log.view_fmt	[color=gray]{0}：{1}[/color]	[color=gray]{0}: {1}[/color]
+log.drink_fmt	喝了 {0}，口渴 {1}（{2}）	Drank {0}, thirst {1} ({2})
+log.eat_fmt	食用 {0}，饱食 +{1}，生命 +{2}	Ate {0}, hunger +{1}, health +{2}
+log.use_fmt	使用 {0}，生命 +{1}	Used {0}, health +{1}
+log.discard_fmt	[color=gray]丢弃了 {0}。[/color]	[color=gray]Discarded {0}.[/color]
+log.cure_fmt	[color=green]治愈了 {0}。[/color]	[color=green]Cured {0}.[/color]
+log.vital_starving	[color=red]极度饥饿：生命与精神受损。[/color]	[color=red]Starving: health and sanity suffer.[/color]
+log.vital_dehydrated	[color=red]严重脱水：生命与精力受损。[/color]	[color=red]Dehydrated: health and energy suffer.[/color]
 ui.combine_fail_fmt	[color=red]合成失败：{0}+{1}[/color]	[color=red]Combine failed: {0}+{1}[/color]
 ui.combine_impossible	[color=red]这些物品无法合成[/color]	[color=red]These items cannot combine[/color]
 ui.save_ok	[color=green]游戏已保存。[/color]	[color=green]Game saved.[/color]

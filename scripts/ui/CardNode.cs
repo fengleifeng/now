@@ -4,6 +4,9 @@ using CardSurvival.Data;
 
 namespace CardSurvival.UI;
 
+/// <summary>
+/// 单张卡牌控件：上方插画区、下方名称与属性，拖拽/点击逻辑不变。
+/// </summary>
 public partial class CardNode : Control
 {
 	[Signal] public delegate void OnCardDragEndedEventHandler(CardNode card);
@@ -19,6 +22,7 @@ public partial class CardNode : Control
 	private Label _glyphLabel = null!;
 	private TextureRect _iconRect = null!;
 	private ColorRect _typeAccent = null!;
+	private PanelContainer _artPanel = null!;
 	private bool _initialized;
 	private bool _isDragging;
 	private bool _wasDragged;
@@ -27,16 +31,14 @@ public partial class CardNode : Control
 	private Vector2 _dragStart;
 	private Vector2 _dropGlobalPos;
 
-	public override void _Ready()
-	{
-		InitializeUI();
-	}
+	public override void _Ready() => InitializeUI();
 
+	/// <summary>绑定卡牌数据并刷新显示（名称、类型、图标）。</summary>
 	public void Setup(CardData data)
 	{
 		InitializeUI();
 		Data = data;
-		_nameLabel.Text = data.Stack > 1 ? data.Name + " x" + data.Stack.ToString() : data.Name;
+		_nameLabel.Text = data.Stack > 1 ? data.Name + " x" + data.Stack : data.Name;
 		_typeLabel.Text = GetTypeText(data.Type);
 		_attrLabel.Text = GetAttrText(data);
 		var typeColor = GetTypeColor(data.Type);
@@ -44,25 +46,25 @@ public partial class CardNode : Control
 		_typeAccent.Color = typeColor.Lightened(0.12f);
 		TooltipText = data.Description;
 		MouseDefaultCursorShape = data.IsDraggable ? CursorShape.PointingHand : CursorShape.Arrow;
+		ApplyCardArt(data);
+	}
 
-		var glyph = string.IsNullOrEmpty(data.Name) ? "?" : data.Name.Substring(0, 1);
-		_glyphLabel.Text = glyph;
-
-		Texture2D? tex = null;
-		if (!string.IsNullOrWhiteSpace(data.IconPath))
-			tex = ResourceLoader.Load<Texture2D>(data.IconPath);
+	/// <summary>加载默认或自定义图标；无图时显示名称首字。</summary>
+	private void ApplyCardArt(CardData data)
+	{
+		var tex = CardArtCatalog.LoadIcon(data);
 		if (tex != null)
 		{
 			_iconRect.Texture = tex;
 			_iconRect.Visible = true;
 			_glyphLabel.Visible = false;
+			return;
 		}
-		else
-		{
-			_iconRect.Texture = null;
-			_iconRect.Visible = false;
-			_glyphLabel.Visible = true;
-		}
+
+		_iconRect.Texture = null;
+		_iconRect.Visible = false;
+		_glyphLabel.Visible = true;
+		_glyphLabel.Text = string.IsNullOrEmpty(data.Name) ? "?" : data.Name.Substring(0, 1);
 	}
 
 	private void InitializeUI()
@@ -70,7 +72,7 @@ public partial class CardNode : Control
 		if (_initialized) return;
 		_initialized = true;
 
-		CustomMinimumSize = new Vector2(128, 100);
+		CustomMinimumSize = new Vector2(128, 112);
 		SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
 		SizeFlagsVertical = SizeFlags.ShrinkBegin;
 		MouseFilter = MouseFilterEnum.Stop;
@@ -99,69 +101,68 @@ public partial class CardNode : Control
 		_fill.OffsetBottom = -4;
 		AddChild(_fill);
 
+		_typeAccent = new ColorRect
+		{
+			CustomMinimumSize = new Vector2(5, 0),
+			Color = new Color(0.5f, 0.5f, 0.5f)
+		};
+		_typeAccent.SetAnchorsPreset(LayoutPreset.LeftWide);
+		_typeAccent.OffsetLeft = 4;
+		_typeAccent.OffsetRight = 9;
+		_typeAccent.OffsetTop = 4;
+		_typeAccent.OffsetBottom = -4;
+		AddChild(_typeAccent);
+
 		var margin = new MarginContainer();
 		margin.SetAnchorsPreset(LayoutPreset.FullRect);
-		margin.AddThemeConstantOverride("margin_left", 6);
+		margin.AddThemeConstantOverride("margin_left", 10);
 		margin.AddThemeConstantOverride("margin_right", 6);
 		margin.AddThemeConstantOverride("margin_top", 6);
 		margin.AddThemeConstantOverride("margin_bottom", 6);
 		AddChild(margin);
 
 		var box = new VBoxContainer();
-		box.AddThemeConstantOverride("separation", 3);
+		box.AddThemeConstantOverride("separation", 2);
 		margin.AddChild(box);
 
-		var artRow = new HBoxContainer();
-		artRow.AddThemeConstantOverride("separation", 6);
-		artRow.CustomMinimumSize = new Vector2(0, 36);
-		artRow.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		box.AddChild(artRow);
-
-		_typeAccent = new ColorRect
+		_artPanel = new PanelContainer();
+		_artPanel.CustomMinimumSize = new Vector2(0, 52);
+		_artPanel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		var artBg = new StyleBoxFlat
 		{
-			CustomMinimumSize = new Vector2(5, 0),
-			SizeFlagsVertical = SizeFlags.ExpandFill
+			BgColor = new Color(0, 0, 0, 0.28f),
+			CornerRadiusTopLeft = 5,
+			CornerRadiusTopRight = 5,
+			CornerRadiusBottomRight = 5,
+			CornerRadiusBottomLeft = 5
 		};
-		artRow.AddChild(_typeAccent);
+		artBg.SetBorderWidthAll(1);
+		artBg.BorderColor = new Color(1, 1, 1, 0.08f);
+		_artPanel.AddThemeStyleboxOverride("panel", artBg);
+		box.AddChild(_artPanel);
+
+		var artMargin = new MarginContainer();
+		artMargin.AddThemeConstantOverride("margin_left", 4);
+		artMargin.AddThemeConstantOverride("margin_right", 4);
+		artMargin.AddThemeConstantOverride("margin_top", 4);
+		artMargin.AddThemeConstantOverride("margin_bottom", 4);
+		_artPanel.AddChild(artMargin);
 
 		var artCenter = new CenterContainer();
 		artCenter.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 		artCenter.SizeFlagsVertical = SizeFlags.ExpandFill;
-		artRow.AddChild(artCenter);
+		artMargin.AddChild(artCenter);
 
-		var artSlot = new PanelContainer();
-		artSlot.CustomMinimumSize = new Vector2(40, 34);
-		var slotBox = new StyleBoxFlat
-		{
-			BgColor = new Color(0, 0, 0, 0.35f),
-			CornerRadiusTopLeft = 4,
-			CornerRadiusTopRight = 4,
-			CornerRadiusBottomRight = 4,
-			CornerRadiusBottomLeft = 4
-		};
-		slotBox.SetBorderWidthAll(1);
-		slotBox.BorderColor = new Color(1, 1, 1, 0.12f);
-		artSlot.AddThemeStyleboxOverride("panel", slotBox);
-		artCenter.AddChild(artSlot);
-
-		var slotInner = new MarginContainer();
-		slotInner.AddThemeConstantOverride("margin_left", 2);
-		slotInner.AddThemeConstantOverride("margin_right", 2);
-		slotInner.AddThemeConstantOverride("margin_top", 2);
-		slotInner.AddThemeConstantOverride("margin_bottom", 2);
-		artSlot.AddChild(slotInner);
-
-		var stack = new Control();
-		stack.CustomMinimumSize = new Vector2(32, 28);
-		slotInner.AddChild(stack);
+		var iconHost = new Control { CustomMinimumSize = new Vector2(44, 44) };
+		artCenter.AddChild(iconHost);
 
 		_glyphLabel = new Label();
 		_glyphLabel.SetAnchorsPreset(LayoutPreset.FullRect);
 		_glyphLabel.HorizontalAlignment = HorizontalAlignment.Center;
 		_glyphLabel.VerticalAlignment = VerticalAlignment.Center;
-		_glyphLabel.AddThemeFontSizeOverride("font_size", 18);
+		_glyphLabel.AddThemeFontSizeOverride("font_size", 22);
 		_glyphLabel.AddThemeColorOverride("font_color", Colors.White);
-		stack.AddChild(_glyphLabel);
+		iconHost.AddChild(_glyphLabel);
 
 		_iconRect = new TextureRect();
 		_iconRect.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -169,21 +170,46 @@ public partial class CardNode : Control
 		_iconRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
 		_iconRect.TextureFilter = CanvasItem.TextureFilterEnum.Linear;
 		_iconRect.Visible = false;
-		stack.AddChild(_iconRect);
+		iconHost.AddChild(_iconRect);
 
-		_nameLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
-		_nameLabel.AddThemeFontSizeOverride("font_size", 12);
+		var nameBar = new PanelContainer();
+		nameBar.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		var nameBg = new StyleBoxFlat
+		{
+			BgColor = new Color(0, 0, 0, 0.42f),
+			CornerRadiusTopLeft = 3,
+			CornerRadiusTopRight = 3,
+			CornerRadiusBottomRight = 3,
+			CornerRadiusBottomLeft = 3
+		};
+		nameBar.AddThemeStyleboxOverride("panel", nameBg);
+		box.AddChild(nameBar);
+
+		var nameMargin = new MarginContainer();
+		nameMargin.AddThemeConstantOverride("margin_left", 4);
+		nameMargin.AddThemeConstantOverride("margin_right", 4);
+		nameMargin.AddThemeConstantOverride("margin_top", 2);
+		nameMargin.AddThemeConstantOverride("margin_bottom", 2);
+		nameBar.AddChild(nameMargin);
+
+		_nameLabel = new Label
+		{
+			HorizontalAlignment = HorizontalAlignment.Center,
+			AutowrapMode = TextServer.AutowrapMode.WordSmart,
+			MaxLinesVisible = 2,
+			ClipText = true
+		};
+		_nameLabel.AddThemeFontSizeOverride("font_size", 11);
 		_nameLabel.AddThemeColorOverride("font_color", Colors.White);
-		_nameLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		box.AddChild(_nameLabel);
+		nameMargin.AddChild(_nameLabel);
 
 		_typeLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
-		_typeLabel.AddThemeFontSizeOverride("font_size", 10);
+		_typeLabel.AddThemeFontSizeOverride("font_size", 9);
 		_typeLabel.AddThemeColorOverride("font_color", new Color(0.88f, 0.88f, 0.88f));
 		box.AddChild(_typeLabel);
 
 		_attrLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center };
-		_attrLabel.AddThemeFontSizeOverride("font_size", 10);
+		_attrLabel.AddThemeFontSizeOverride("font_size", 9);
 		_attrLabel.AddThemeColorOverride("font_color", new Color(1f, 0.86f, 0.45f));
 		box.AddChild(_attrLabel);
 	}
@@ -262,15 +288,11 @@ public partial class CardNode : Control
 		QueueFree();
 	}
 
-	public bool IsOverArea(Control area)
-	{
-		return new Rect2(_dropGlobalPos, Size).Intersects(area.GetGlobalRect());
-	}
+	public bool IsOverArea(Control area) =>
+		new Rect2(_dropGlobalPos, Size).Intersects(area.GetGlobalRect());
 
-	public CardNode? GetOverlappingCard(Control container)
-	{
-		return FindCardNode(container, new Rect2(_dropGlobalPos, Size));
-	}
+	public CardNode? GetOverlappingCard(Control container) =>
+		FindCardNode(container, new Rect2(_dropGlobalPos, Size));
 
 	private CardNode? FindCardNode(Node node, Rect2 myRect)
 	{
